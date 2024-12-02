@@ -29,7 +29,7 @@
             <div class="page-content">
                 @yield('content')
             </div>
-
+            @include('layout.sweet-alert')
             @include('layout.footer')
         </div>
     </div>
