@@ -8,7 +8,7 @@
     <div class="card">
         <div class="card-body">
             <div class="text-end p-3">
-                <button id="btn-tambah-user" data-bs-toggle='modal' data-bs-target='#modal-tambah-user' class="btn btn-primary"><i class="bi bi-person-plus"></i> Tambah User</button>
+                <button id="btn-tambah-santri" data-bs-toggle='modal' data-bs-target='#modal-tambah-santri' class="btn btn-primary"><i class="bi bi-person-plus"></i> Tambah Santri</button>
             </div>
             <div class="table-responsive">
                     <table class="table table-lg" id="table-1">
@@ -18,7 +18,7 @@
             </div>
         </div>
     </div>
-    @include('admin.user.modal')
+    @include('admin.santri.modal')
 @endsection
 
 @section('custom-js')
@@ -29,66 +29,13 @@
             .then(data => {
                 const table = new simpleDatatables.DataTable("#table-1", {
                     data: {
-                        headings: ["No", "Nama", "Username", "Role", "Aksi"],
+                        headings: ["No", "Nama", "Kelas", "Target Pojok", "Target Lembaga", "Status", "Aksi"],
                         data: data.data,
                     },
                 });
             })
             .catch(error => console.error("Error fetching data:", error));
 
-
-        $('#table-1').on('click', '#btn-input-password', async function () {
-            const id = $(this).data('id');
-
-            const { value: password } = await Swal.fire({
-                title: 'Masukkan Password User',
-                input: 'password',
-                inputLabel: 'Password',
-                inputPlaceholder: 'Password',
-                inputAttributes: {
-                    maxlength: 10,
-                    autocapitalize: 'off',
-                    autocorrect: 'off',
-                },
-                showCancelButton: true, // Tambahkan tombol batal
-            });
-
-            if (password) {
-                $.ajax({
-                    url: baseUrl + '{{ $url }}' + '/store-password', // Ganti dengan endpoint Laravel Anda
-                    method: 'POST',
-                    data: {
-                        id: id,
-                        password: password,
-                        _token: $('meta[name="csrf-token"]').attr('content'), // CSRF token
-                    },
-                    success: function (response) {
-                        Toastify({
-                            text: response.message || 'Password sent successfully!',
-                            duration: 3000,
-                            close: true,
-                            gravity: "top",
-                            position: "right",
-                            backgroundColor: "#4fbe87",
-                        }).showToast();
-
-                        setTimeout(function() {
-                            location.reload();
-                        }, 4000); 
-                    },
-                    error: function (xhr) {
-                        Toastify({
-                            text: xhr.responseJSON?.message || 'Something went wrong!',
-                            duration: 10000,
-                            close: true,
-                            gravity: "top",
-                            position: "right",
-                            backgroundColor: "#F72C5B",
-                        }).showToast();
-                    },
-                });
-            }
-        });
 
         $('#table-1').on('click', '#btn-edit', function () {
             const id = $(this).data('id');
@@ -98,8 +45,10 @@
 
             $('#id-delete').val(id);
 
-            $('#username').val('');
             $('#nama').val('');
+            $('#kelas').val('');
+            $('#trgt-pjk').val('');
+            $('#trgt-lbg').val('');
             $('#idEdit').val('');
 
             $.ajax({
@@ -107,8 +56,12 @@
                 method: 'GET',
                 success: function (response) {
                     $('#idEdit').val(response.id);
-                    $('#username').val(response.username);
                     $('#nama').val(response.nama);
+                    $('#trgt-pjk').val(response.jml_target_pojok);
+                    $('#trgt-lbg').val(response.jml_target_lembaga);
+                    
+                    $('#kelas').val(response.id_kelas).change();
+                    $('#status').val(response.status).change();
                 },
                 error: function (xhr, status, error) {
                     Toastify({
@@ -122,8 +75,6 @@
                 },
             });
 
-            $('#username').val('');
-            $('#nama').val('');
             $('#idEdit').val('');
         });
 
@@ -135,8 +86,10 @@
                 _method: 'PUT',
                 _token: '{{ csrf_token() }}',
                 nama: $('#nama').val(),
-                username: $('#username').val(),
-                password: $('#password').val(),
+                kelas: $('#kelas').val(),
+                targetPojok: $('#trgt-pjk').val(),
+                targetLembaga: $('#trgt-lbg').val(),
+                status: $('#status').val(),
             };
 
             $.ajax({
@@ -168,9 +121,7 @@
                     }).showToast();
                 },
             });
-            $('#username').val('');
-            $('#nama').val('');
-            $('#idEdit').val('');
+            $('#modal-edit').modal('hide');
         });
 
         $('#btn-delete').on('click', function(){
@@ -186,7 +137,7 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
-                        url: "{{ route('user.delete', '') }}/" + id, 
+                        url: "{{ route('santri.delete', '') }}/" + id, 
                         method: 'DELETE',
                         data: {
                             _token: "{{ csrf_token() }}",
@@ -209,6 +160,10 @@
                             }, 3000);
                         },
                         error: function(xhr, status, error) {
+                            console.log(xhr);
+                            console.log(status);
+                            console.log(error);
+                            
                             Toastify({
                                 text: xhr.responseJSON?.message || 'Terjadi kesalahan!',
                                 duration: 10000,
@@ -222,15 +177,15 @@
                     });
                 }
             });
-            $('#username').val('');
             $('#nama').val('');
             $('#idEdit').val('');
         });
 
-        $('#btn-tambah-user').on('click', function(){
-            $('#tambah-username').val('');
+        $('#btn-tambah-santri').on('click', function(){
             $('#tambah-nama').val('');
-            $('#tambah-password').val('');
+            $('#tambah-kelas').val('');
+            $('#tambah-trgt-pjk').val('');
+            $('#tambah-trgt-lbg').val('');
         });
     });
 </script>

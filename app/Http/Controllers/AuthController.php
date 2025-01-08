@@ -10,7 +10,7 @@ class AuthController extends Controller
 {
     public function login(){
         $data = [
-            'title' => 'Login Page'
+            'title' => 'Login'
         ];
 
         return view('auth.login', $data);
@@ -38,10 +38,12 @@ class AuthController extends Controller
         session([
             'idUser'    => $user->id,
             'nama'      => $user->nama,
-            'idRole'    => $user->role
+            'idRole'    => $user->role,
+            'namaUser'  => $user->nama,
+            'username'  => $user->username,
         ]);
 
-        return redirect('/dashboard')->with('success', 'Berhasil Login');
+        return redirect()->route('dashboard.')->with('success', 'Berhasil Login');
     }
 
     public function logout(){

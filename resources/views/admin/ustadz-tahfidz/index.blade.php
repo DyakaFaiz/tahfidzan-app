@@ -7,9 +7,6 @@
 @section('content')
     <div class="card">
         <div class="card-body">
-            <div class="text-end p-3">
-                <button id="btn-tambah-user" data-bs-toggle='modal' data-bs-target='#modal-tambah-user' class="btn btn-primary"><i class="bi bi-person-plus"></i> Tambah User</button>
-            </div>
             <div class="table-responsive">
                     <table class="table table-lg" id="table-1">
                         {{-- DataTable --}}
@@ -18,77 +15,27 @@
             </div>
         </div>
     </div>
-    @include('admin.user.modal')
+    {{-- @include('admin.user.modal') --}}
 @endsection
 
 @section('custom-js')
 <script>
     $(document).ready(function () {
         fetch(baseUrl + '{{ $url }}' + '/get-data')
-            .then(response => response.json())
-            .then(data => {
-                const table = new simpleDatatables.DataTable("#table-1", {
-                    data: {
-                        headings: ["No", "Nama", "Username", "Role", "Aksi"],
-                        data: data.data,
-                    },
-                });
-            })
-            .catch(error => console.error("Error fetching data:", error));
+        .then(response => response.json())
+        .then(data => {
+            // Konversi data menjadi array murni
+            const dataArray = Object.values(data.data);
 
-
-        $('#table-1').on('click', '#btn-input-password', async function () {
-            const id = $(this).data('id');
-
-            const { value: password } = await Swal.fire({
-                title: 'Masukkan Password User',
-                input: 'password',
-                inputLabel: 'Password',
-                inputPlaceholder: 'Password',
-                inputAttributes: {
-                    maxlength: 10,
-                    autocapitalize: 'off',
-                    autocorrect: 'off',
+            const table = new simpleDatatables.DataTable("#table-1", {
+                data: {
+                    headings: ["No", "Ustad", "Jumlah"],
+                    data: dataArray,
                 },
-                showCancelButton: true, // Tambahkan tombol batal
             });
+        })
+        .catch(error => console.error("Error fetching data:", error));
 
-            if (password) {
-                $.ajax({
-                    url: baseUrl + '{{ $url }}' + '/store-password', // Ganti dengan endpoint Laravel Anda
-                    method: 'POST',
-                    data: {
-                        id: id,
-                        password: password,
-                        _token: $('meta[name="csrf-token"]').attr('content'), // CSRF token
-                    },
-                    success: function (response) {
-                        Toastify({
-                            text: response.message || 'Password sent successfully!',
-                            duration: 3000,
-                            close: true,
-                            gravity: "top",
-                            position: "right",
-                            backgroundColor: "#4fbe87",
-                        }).showToast();
-
-                        setTimeout(function() {
-                            location.reload();
-                        }, 4000); 
-                    },
-                    error: function (xhr) {
-                        Toastify({
-                            text: xhr.responseJSON?.message || 'Something went wrong!',
-                            duration: 10000,
-                            close: true,
-                            gravity: "top",
-                            position: "right",
-                            backgroundColor: "#F72C5B",
-                        }).showToast();
-                    },
-                });
-            }
-        });
 
         $('#table-1').on('click', '#btn-edit', function () {
             const id = $(this).data('id');

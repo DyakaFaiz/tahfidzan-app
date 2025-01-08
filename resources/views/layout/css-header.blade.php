@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="{{ url('') }}/assets/css/app.css">
 
     {{-- Tab Icon --}}
-    <link rel="shortcut icon" href="{{ url('') }}/assets/images/favicon.svg" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ url('') }}" type="image/x-icon">
 
     {{-- Sweet Alert --}}
     <link rel="stylesheet" href="{{ url('') }}/assets/vendors/sweetalert2/sweetalert2.min.css">

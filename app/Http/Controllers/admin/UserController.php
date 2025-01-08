@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\admin;
+
+use App\Http\Controllers\Controller;
 
 use App\Models\User;
 
@@ -12,15 +14,16 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class UserController extends Controller
 {
-    public function index(){
+    public function index()
+    {
         $users = User::select('users.*', 'master_role.nama as role')
                 ->leftJoin('master_role', 'master_role.id', 'users.role')
                 ->orderBy('username', 'asc')
                 ->get()
-                ;
+                ;              
 
         $data = [
-            'title'  => 'User Page',
+            'title'  => 'User',
             'pageHeading'   => 'User Management',
             'url'   => 'user',
             'users' => $users,
@@ -147,7 +150,7 @@ class UserController extends Controller
     {
         $id = $request->id;
         if($id == 0){
-            return response()->json(['message' => 'User ini tidak boleh dihapus!!'], 400);
+            return response()->json(['message' => 'User ini tidak boleh dihapus!!'], 500);
         }
 
         try {
@@ -157,9 +160,9 @@ class UserController extends Controller
 
             return response()->json(['message' => 'Berhasil menghapus data'], 200);
         } catch (ModelNotFoundException $e) {
-            return response()->json(['message' => $e], 400);
+            return response()->json(['message' => $e], 500);
         } catch (\Exception $e) {
-            return response()->json(['message' => $e], 400);
+            return response()->json(['message' => $e], 500);
         }
     }
 }
