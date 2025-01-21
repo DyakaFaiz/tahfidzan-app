@@ -45,8 +45,6 @@ class SantriController extends Controller
                 $index + 1,
                 $row->nama,
                 $row->kelasSantri,
-                $row->jml_target_pojok,
-                $row->jml_target_lembaga,
                 $status,
                 $aksi,
             ];

@@ -43,13 +43,13 @@ class UstadTahfidzController extends Controller
         $uniqueDataPerUstad = $filteredData->unique('id_ustad');
 
         // Transformasi data akhir
-        $transformedData = $uniqueDataPerUstad->map(function ($row, $index) use ($jmlSantriPerUstad) {
+        $transformedData = $uniqueDataPerUstad->values()->map(function ($row, $index) use ($jmlSantriPerUstad) {
             $rowUstad = '<a href="' . route('ketahfidzan.ustad-tahfidz.detail', ['id' => $row->id_ustad]) . '">' . $row->namaUstad . '</a>';
-
+        
             $jmlSantri = $jmlSantriPerUstad[$row->id_ustad] ?? 0;
-
+        
             return [
-                $index + 1,
+                $index + 1, // Indeks akan berurutan mulai dari 1
                 $rowUstad,
                 $jmlSantri,
             ];
@@ -66,17 +66,18 @@ class UstadTahfidzController extends Controller
                     ->where('id_ustad', $id)
                     ->get();
 
-        // Mengecek jika data tidak ada
         if ($find->isEmpty()) {
             return redirect()->back()->with('error', 'Data tidak ditemukan');
         }
 
-        // Mengambil hanya satu data pertama
         $firstData = $find->first();
+
         $santri = Santri::whereNotIn('id', function ($query) {
             $query->select('id_santri')
                   ->from('master_ketahfidzan');
-        })->get();
+        })
+        ->where('status', 1)
+        ->get();
 
         $data = [
             'namaUstad' => $firstData->namaUstad,
@@ -123,11 +124,9 @@ class UstadTahfidzController extends Controller
         $idKetahfidzan = $id;
         $idUstad = $request->idUstad;
 
-        // Cari data berdasarkan id_ustad dan id_santri
         $data = MasterKetahfidzan::where('id', $idKetahfidzan)
             ->first();
 
-        // Periksa apakah data ditemukan
         if (!$data) {
             return response()->json(['message' => 'Data tidak ditemukan'], 404); // Status 404 untuk data tidak ditemukan
         }

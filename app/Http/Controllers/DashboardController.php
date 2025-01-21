@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\BlangkoExports;
+use Maatwebsite\Excel\Facades\Excel;
+
 use Carbon\Carbon;
 use App\Models\Waktu;
 use App\Models\Ziyadah;
@@ -12,18 +15,125 @@ use Illuminate\Http\Request;
 use App\Models\TahsinBinnadhor;
 
 use App\Models\MasterKetahfidzan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use App\Models\Target;
 
 class DashboardController extends Controller
 {
-    public function index(){
+    public function index()
+    {
         $this->lembarBaru();
-        
+
         $tglMin = Waktu::oldest()->first();
         $tglMax = Waktu::latest()->first();
 
         $tglMinFormatted = Carbon::parse($tglMin->tgl)->format('Y-m-d');
         $tglMaxFormatted = Carbon::parse($tglMax->tgl)->format('Y-m-d');
+
+        // $data = MasterKetahfidzan::select(
+        //     'master_ketahfidzan.*',
+        //     'users.nama as namaUstad',
+        //     'master_tingkatan.id AS idTingkatan',
+        //     'master_tingkatan.tingkatan',
+        //     'santri.status'
+        // )
+        // ->leftJoin('users', 'users.id', '=', 'master_ketahfidzan.id_ustad')
+        // ->leftJoin('santri', 'santri.id', '=', 'master_ketahfidzan.id_santri')
+        // ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
+        // ->leftJoin('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
+        // ->get();
+        
+        // // Filter data untuk hanya mengambil yang namaUstad tidak kosong
+        // $filteredData = $data->filter(function ($row) {
+        //     return !empty($row->namaUstad);
+        // });
+        
+        // // Mengelompokkan data berdasarkan id_ustad dan menghitung jumlah id_santri unik
+        // $jmlSantriPerUstad = $filteredData->groupBy('id_ustad')->map(function ($group) {
+        //     return $group->unique('id_santri')->count();
+        // });
+        
+        // // Mengambil data unik berdasarkan id_ustad
+        // $uniqueDataPerUstad = $filteredData->unique('id_ustad');
+        
+        // // Transformasi data akhir
+        // $transformedData = $uniqueDataPerUstad->map(function ($row, $index) use ($jmlSantriPerUstad, $filteredData) {
+        //     // Membuat link untuk nama ustad
+        //     $rowUstad = '<a href="' . route('ketahfidzan.ustad-tahfidz.detail', ['id' => $row->id_ustad]) . '">' . $row->namaUstad . '</a>';
+            
+        //     // Mengambil jumlah santri
+        //     $jmlSantri = $jmlSantriPerUstad[$row->id_ustad] ?? 0;
+            
+        //     // Mengambil id_tingkatan dari data ini
+        //     $idTingkatan = $row->idTingkatan;
+            
+        //     // Menghitung jumlah santri berdasarkan kategori target
+        //     $santriZiyadahTarget = Target::where('id_tingkatan', $idTingkatan)
+        //         ->where('nama', 'ziyadah')
+        //         ->count();
+            
+        //     $santriZiyadahNonTarget = $filteredData->where('id_ustad', $row->id_ustad)
+        //         ->whereIn('id_santri', function($query) use ($idTingkatan) {
+        //             $query->select('santri.id')->from('santri')
+        //                 ->join('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
+        //                 ->join('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
+        //                 ->where(DB::raw('FIND_IN_SET(master_tingkatan.id, '. $idTingkatan .')'), '>', DB::raw('0'));
+        //         })
+        //         ->where('status', 0)  // Non-target
+        //         ->count();
+            
+        //     $santriDeresanTarget = Target::where('id_tingkatan', $idTingkatan)
+        //         ->where('nama', 'deresan')
+        //         ->count();
+            
+        //     $santriDeresanNonTarget = $filteredData->where('id_ustad', $row->id_ustad)
+        //         ->whereIn('id_santri', function($query) use ($idTingkatan) {
+        //             $query->select('santri.id')->from('santri')
+        //                 ->join('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
+        //                 ->join('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
+        //                 ->where(DB::raw('FIND_IN_SET(master_tingkatan.id, '. $idTingkatan .')'), '>', DB::raw('0'));
+        //         })
+        //         ->where('status', 1)  // Non-target
+        //         ->count();
+            
+        //     $santriLembagaTarget = Target::where('id_tingkatan', $idTingkatan)
+        //         ->where('nama', 'lembaga')
+        //         ->count();
+            
+        //     $santriLembagaNonTarget = $filteredData->where('id_ustad', $row->id_ustad)
+        //         ->whereIn('id_santri', function($query) use ($idTingkatan) {
+        //             $query->select('santri.id')->from('santri')
+        //                 ->join('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
+        //                 ->join('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
+        //                 ->where(DB::raw('FIND_IN_SET(master_tingkatan.id, '. $idTingkatan .')'), '>', DB::raw('0'));
+        //         })
+        //         ->where('status', 2)  // Non-target
+        //         ->count();
+            
+        //     // Menghitung jumlah santri berdasarkan status
+        //     $santriBoyong = $filteredData->where('id_ustad', $row->id_ustad)->where('status', 0)->count();
+        //     $santriKhatam = $filteredData->where('id_ustad', $row->id_ustad)->where('status', 2)->count();
+        //     $santriKhotimin = $filteredData->where('id_ustad', $row->id_ustad)->where('status', 3)->count();
+            
+        //     return [
+        //         $index + 1,
+        //         $rowUstad,
+        //         $jmlSantri,
+        //         $row->tingkatan,
+        //         $santriZiyadahTarget,
+        //         $santriZiyadahNonTarget,
+        //         $santriDeresanTarget,
+        //         $santriDeresanNonTarget,
+        //         $santriLembagaTarget,
+        //         $santriLembagaNonTarget,
+        //         $santriBoyong,
+        //         $santriKhatam,
+        //         $santriKhotimin,
+        //     ];
+        // });
+    
+        // dd($transformedData);
 
         $data = [
             'tglMin'  => $tglMinFormatted,
@@ -33,6 +143,207 @@ class DashboardController extends Controller
             'url'   => 'dashboard'
         ];
         return view('dashboard', $data);
+    }
+
+    public function diagramZiyadah(Request $request)
+    {
+        $idUser = session('idUser');
+        $idRole = session('idRole');
+
+        // Validasi input
+        try {
+            $request->validate([
+                'tglAwal' => 'date',
+                'tglAkhir' => 'date',
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'errors' => $e->errors(),
+            ], 422);
+        }
+
+        if ($request->has(['tglAwal', 'tglAkhir'])) 
+        {
+            $formattedAwal = Carbon::parse($request->tglAwal)->format('Y-m-d');
+            $formattedAkhir = Carbon::parse($request->tglAkhir)->format('Y-m-d');
+
+            $textTglAwal = Carbon::parse($request->tglAwal)->locale('id')->format('d F Y');
+            $textTglAkhir = Carbon::parse($request->tglAkhir)->locale('id')->format('d F Y');
+
+            $idWaktus = Waktu::whereRaw('DATE(tgl) BETWEEN ? AND ?', [$formattedAwal, $formattedAkhir])
+                ->pluck('id')
+                ->toArray();
+
+            $ziyadahDonut = Ziyadah::select(
+                'ziyadah.id_santri',
+                'santri.nama AS namaSantri',
+                DB::raw('SUM(ziyadah.jumlah) AS total_jumlah'),
+                'master_target.jumlah AS targetJumlah',
+                'ziyadah.status',
+            )
+            ->leftJoin('santri', 'santri.id', '=', 'ziyadah.id_santri')
+            ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
+            ->leftJoin('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
+            ->leftJoin('master_target', DB::raw('FIND_IN_SET(master_tingkatan.id, master_target.id_tingkatan)'), '>', DB::raw('0'))
+            ->where('master_target.nama', 'ziyadah')
+            ->whereIn('id_waktu', $idWaktus)
+            ->when($idRole == 2, function ($query) use ($idUser) {
+                return $query->where('id_ustad', $idUser);
+            })
+            ->groupBy(
+                'ziyadah.id_santri',
+                'santri.nama',
+                'master_target.jumlah',
+                'ziyadah.status',
+            )
+            ->get();
+
+            $totalSantri = $ziyadahDonut->unique('id_santri')->count();
+            $target = $ziyadahDonut->filter(function ($item) {
+                return $item->total_jumlah >= $item->targetJumlah;
+            })->count();
+
+            $khatam = $ziyadahDonut->filter(function ($item) {
+                return $item->total_jumlah >= $item->targetJumlah && $item->status == 2;
+            })->count();
+
+            $tidakTarget = $totalSantri - $target;
+
+            $persentaseTarget = $totalSantri > 0 ? ($target / $totalSantri) * 100 : 0;
+            $persentaseTidakTarget = $totalSantri > 0 ? ($tidakTarget / $totalSantri) * 100 : 0;
+            $persentaseKhatam = $totalSantri > 0 ? ($khatam / $totalSantri) * 100 : 0;
+ 
+            $ziyadahStick = Ziyadah::select(
+                'master_tingkatan.tingkatan',
+                DB::raw('COUNT(DISTINCT ziyadah.id_santri) AS totalSantri'),
+                DB::raw('SUM(CASE WHEN ziyadah.jumlah >= master_target.jumlah THEN 1 ELSE 0 END) AS totalTarget'),
+                DB::raw('SUM(CASE WHEN ziyadah.jumlah >= master_target.jumlah AND ziyadah.status = 2 THEN 1 ELSE 0 END) AS totalKhatam'),
+                DB::raw('SUM(CASE WHEN ziyadah.jumlah < master_target.jumlah THEN 1 ELSE 0 END) AS totalTidakTarget')
+            )
+            ->leftJoin('santri', 'santri.id', '=', 'ziyadah.id_santri')
+            ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
+            ->leftJoin('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
+            ->leftJoin('master_target', DB::raw('FIND_IN_SET(master_tingkatan.id, master_target.id_tingkatan)'), '>', DB::raw('0'))
+            ->when($idRole == 2, function ($query) use ($idUser) {
+                return $query->where('ziyadah.id_ustad', $idUser);
+            })
+            ->whereIn('id_waktu', $idWaktus)
+            ->whereNotNull('santri.id_kelas')
+            ->where('master_target.nama', 'ziyadah')
+            ->where('santri.id_kelas', '!=', 'boyong')
+            ->where('santri.id_kelas', '!=', 25)
+            ->groupBy('master_tingkatan.tingkatan')
+            ->get();
+            
+            $dataDiagramStick = $ziyadahStick->mapWithKeys(function ($item) {
+                return [
+                    $item->tingkatan => [
+                        'totalSantri' => $item->totalSantri,
+                        'totalTarget' => $item->totalTarget,
+                        'totalKhatam' => $item->totalKhatam,
+                        'totalTidakTarget' => $item->totalTidakTarget,
+                    ]
+                ];
+            });
+
+            return response()->json([
+                'persentaseKhatam' => $persentaseKhatam,
+                'persentaseTarget' => round($persentaseTarget, 2),
+                'persentaseTidakTarget' => round($persentaseTidakTarget, 2),
+                'txtTglAwal' => $textTglAwal,
+                'txtTglAkhir' => $textTglAkhir,
+                'dataChart' => $dataDiagramStick
+            ]);
+        }else{
+
+            //Diagram Donut 
+
+            $ziyadahDonut = Ziyadah::select(
+                'ziyadah.id_santri',
+                'santri.nama AS namaSantri',
+                DB::raw('SUM(ziyadah.jumlah) AS total_jumlah'),
+                'master_target.jumlah AS targetJumlah',
+                'ziyadah.status',
+            )
+            ->leftJoin('santri', 'santri.id', '=', 'ziyadah.id_santri')
+            ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
+            ->leftJoin('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
+            ->leftJoin('master_target', DB::raw('FIND_IN_SET(master_tingkatan.id, master_target.id_tingkatan)'), '>', DB::raw('0'))
+            ->where('master_target.nama', 'ziyadah')
+            ->when($idRole == 2, function ($query) use ($idUser) {
+                return $query->where('id_ustad', $idUser);
+            })
+            ->groupBy(
+                'ziyadah.id_santri',
+                'santri.nama',
+                'master_target.jumlah',
+                'ziyadah.status',
+            )
+            ->get();
+
+            $totalSantri = $ziyadahDonut->unique('id_santri')->count();
+            $target = $ziyadahDonut->filter(function ($item) {
+                return $item->total_jumlah >= $item->targetJumlah;
+            })->count();
+
+            $khatam = $ziyadahDonut->filter(function ($item) {
+                return $item->total_jumlah >= $item->targetJumlah && $item->status == 2;
+            })->count();
+
+            $tidakTarget = $totalSantri - $target;
+
+            $persentaseTarget = $totalSantri > 0 ? ($target / $totalSantri) * 100 : 0;
+            $persentaseTidakTarget = $totalSantri > 0 ? ($tidakTarget / $totalSantri) * 100 : 0;
+            $persentaseKhatam = $totalSantri > 0 ? ($khatam / $totalSantri) * 100 : 0;
+
+
+            // Diagram Stick
+            $ziyadahStick = Ziyadah::select(
+                    'master_tingkatan.tingkatan',
+                    DB::raw('COUNT(DISTINCT ziyadah.id_santri) AS totalSantri'),
+                    DB::raw('SUM(CASE WHEN ziyadah.jumlah >= master_target.jumlah THEN 1 ELSE 0 END) AS totalTarget'),
+                    DB::raw('SUM(CASE WHEN ziyadah.jumlah >= master_target.jumlah AND ziyadah.status = 2 THEN 1 ELSE 0 END) AS totalKhatam'),
+                    DB::raw('SUM(CASE WHEN ziyadah.jumlah < master_target.jumlah THEN 1 ELSE 0 END) AS totalTidakTarget')
+                )
+                ->leftJoin('santri', 'santri.id', '=', 'ziyadah.id_santri')
+                ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
+                ->leftJoin('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
+                ->leftJoin('master_target', DB::raw('FIND_IN_SET(master_tingkatan.id, master_target.id_tingkatan)'), '>', DB::raw('0'))
+                ->when($idRole == 2, function ($query) use ($idUser) {
+                    return $query->where('ziyadah.id_ustad', $idUser);
+                })
+                ->whereNotNull('santri.id_kelas')
+                ->where('master_target.nama', 'ziyadah')
+                ->where('santri.id_kelas', '!=', 'boyong')
+                ->where('santri.id_kelas', '!=', 25)
+                ->groupBy('master_tingkatan.tingkatan')
+                ->get();
+            
+            $dataDiagramStick = $ziyadahStick->mapWithKeys(function ($item) {
+                return [
+                    $item->tingkatan => [
+                        'totalSantri' => $item->totalSantri,
+                        'totalTarget' => $item->totalTarget,
+                        'totalKhatam' => $item->totalKhatam,
+                        'totalTidakTarget' => $item->totalTidakTarget,
+                    ]
+                ];
+            });
+
+            return response()->json([
+                'persentaseKhatam' => $persentaseKhatam,
+                'persentaseTarget' => round($persentaseTarget, 2),
+                'persentaseTidakTarget' => round($persentaseTidakTarget, 2),
+                'dataChart' => $dataDiagramStick
+            ]);
+        }
+
+        // Jika parameter tidak valid
+        return response()->json([
+            'success' => false,
+            'message' => 'Parameter tglAwal dan tglAkhir diperlukan.'
+        ], 400);
     }
 
     public function blangko(Request $request)
@@ -197,6 +508,40 @@ class DashboardController extends Controller
         return response()->json($data);
     }
 
+    public function kondisiHalaqoh(Request $request)
+    {
+        $idUser = session('idUser');
+        $idRole = session('idRole');
+
+        try {
+            $request->validate([
+                'tglAwal' => 'required|date',
+                'tglAkhir' => 'required|date',
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'errors' => $e->errors(),
+            ], 422);
+        }
+
+        $formattedAwal = Carbon::parse($request->tglAwal)->format('Y-m-d');
+        $formattedAkhir = Carbon::parse($request->tglAkhir)->format('Y-m-d');
+
+        $textTglAwal = Carbon::parse($request->tglAwal)->locale('id')->format('d F Y');
+        $textTglAkhir = Carbon::parse($request->tglAkhir)->locale('id')->format('d F Y');
+
+        $getIdWaktu = Waktu::whereRaw('DATE(tgl) BETWEEN ? AND ?', [$formattedAwal, $formattedAkhir])->pluck('id');
+        $idWaktus = $getIdWaktu->toArray();
+
+
+    }
+
+    public function exportBlangko(Request $request)
+    {
+        return Excel::download(new BlangkoExports, 'data.xlsx');
+    }
+
     private function getHafalan($data)
     {
         return $data->groupBy('id_santri')->map(function ($group) {
@@ -212,7 +557,7 @@ class DashboardController extends Controller
         });
     }
 
-    function jmlPojok($data) {
+    private function jmlPojok($data) {
         $maxPojok = 20;
         return $data->map(function ($item) use ($maxPojok) {
             if ($item['juzAkhir'] > $item['juzAwal']) {
@@ -223,7 +568,8 @@ class DashboardController extends Controller
         });
     }
 
-    private function lembarBaru(){
+    private function lembarBaru()
+    {
         $waktu = Waktu::latest()->first();
 
         Carbon::setLocale('id');
@@ -232,7 +578,6 @@ class DashboardController extends Controller
         $tglHariIni = $now->format('d');
         $tglLengkapHariIni = $now->format('Y-m-d H:i:s');
         $hariIni = $now->translatedFormat('l');
-        $cekDB = DeresanA::where('id_waktu', $waktu->id)->exists();
 
         if ($tglDb != $tglHariIni) {
             try {
@@ -254,13 +599,19 @@ class DashboardController extends Controller
                     return;
                 }
         
-                $masterTahfidzan = MasterKetahfidzan::get();
+                $masterTahfidzan = MasterKetahfidzan::select(
+                    'master_ketahfidzan.*',
+                    'santri.status',
+                    )
+                ->leftJoin('santri', 'santri.id', '=', 'master_ketahfidzan.id_santri')
+                ->get();
         
                 $data = $masterTahfidzan->map(function ($row) use ($waktuTerbaru) {
                     return [
                         'id_waktu' => $waktuTerbaru->id,
                         'id_ustad' => $row->id_ustad,
                         'id_santri' => $row->id_santri,
+                        'status' => $row->status,
                     ];
                 })->toArray();
                 

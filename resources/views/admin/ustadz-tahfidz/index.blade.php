@@ -15,7 +15,6 @@
             </div>
         </div>
     </div>
-    {{-- @include('admin.user.modal') --}}
 @endsection
 
 @section('custom-js')

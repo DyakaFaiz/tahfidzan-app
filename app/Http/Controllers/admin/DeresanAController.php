@@ -8,7 +8,7 @@ use App\Models\DeresanA;
 use App\Models\Waktu;
 use App\Models\Juz;
 use App\Models\MasterSurat;
-use App\Models\MasterKetahfidzan;
+use App\Models\Santri;
 use Illuminate\Support\Facades\Validator;
 
 use Carbon\Carbon;
@@ -26,82 +26,6 @@ class DeresanAController extends Controller
             $item->nomor = $item->nama;
             return $item;
         });
-
-        // Carbon::setLocale('id');
-        // $now = now();
-        // $tglDb = Carbon::parse($waktu->tgl)->format('d');
-        // $tglHariIni = $now->format('d');
-        // $tglLengkapHariIni = $now->format('Y-m-d H:i:s');
-        // $hariIni = $now->translatedFormat('l');
-        // $cekDB = DeresanA::where('id_waktu', $waktu->id)->exists();
-
-        // if ($tglDb != $tglHariIni) {
-        //     try {
-        //         $createWaktu = Waktu::create([
-        //             'tgl' => $tglLengkapHariIni,
-        //             'hari' => $hariIni,
-        //         ]);
-                
-        //         if ($createWaktu) {
-        //             session()->flash('success', 'Hari Telah berganti');
-        //         } else {
-        //             session()->flash('error', 'Data Waktu gagal ditambahkan.');
-        //         }
-                    
-        //         $waktuTerbaru = Waktu::latest()->first();
-        
-        //         if (!$waktuTerbaru) {
-        //             session()->flash('error', 'Gagal mendapatkan data waktu terbaru.');
-        //             return;
-        //         }
-        
-        //         $masterTahfidzan = MasterKetahfidzan::get();
-        
-        //         $data = $masterTahfidzan->map(function ($row) use ($waktuTerbaru) {
-        //             return [
-        //                 'id_waktu' => $waktuTerbaru->id,
-        //                 'id_ustad' => $row->id_ustad,
-        //                 'id_santri' => $row->id_santri,
-        //             ];
-        //         })->toArray();
-                
-        //         $save = DeresanA::insert($data);
-
-        //         if(!$save){
-        //             session()->flash('error', 'Gagal membuat lembar hari ini, coba sekali lagi');
-        //         }else{
-        //             session()->flash('success', 'Behasil, lembar baru siap digunakan');
-        //         }
-        //     } catch (\Exception $e) {
-        //         session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
-        //     }
-        // }
-        // elseif($cekDB == false){
-        //     $waktuTerbaru = Waktu::latest()->first();
-        
-        //         if (!$waktuTerbaru) {
-        //             session()->flash('error', 'Gagal mendapatkan data waktu terbaru.');
-        //             return;
-        //         }
-        
-        //         $masterTahfidzan = MasterKetahfidzan::get();
-        
-        //         $data = $masterTahfidzan->map(function ($row) use ($waktuTerbaru) {
-        //             return [
-        //                 'id_waktu' => $waktuTerbaru->id,
-        //                 'id_ustad' => $row->id_ustad,
-        //                 'id_santri' => $row->id_santri,
-        //             ];
-        //         })->toArray();
-                
-        //         $save = DeresanA::insert($data);
-
-        //         if(!$save){
-        //             session()->flash('error', 'Gagal membuat lembar hari ini, coba sekali lagi');
-        //         }else{
-        //             session()->flash('success', 'Behasil, lembar baru siap digunakan');
-        //         }
-        // }
 
         $pojok = [];
         for ($i = 1; $i <= 20; $i++) {
@@ -240,6 +164,15 @@ class DeresanAController extends Controller
                 break;
             default:
                 return response()->json(['message' => 'Field tidak valid'], 400);
+        }
+
+        if($field == 'status' && $request->value != 1){
+            $santri = Santri::where('id', $tahfidzan->id_santri)
+            ->first();
+
+            $santri->update([
+                'status' => $request->value
+            ]);
         }
 
         $tahfidzan->update([

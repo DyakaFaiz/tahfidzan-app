@@ -6,7 +6,7 @@
     <script src="{{ url('') }}/assets/js/main.js"></script>
 
     <script src="{{ url('') }}/assets/vendors/apexcharts/apexcharts.js"></script>
-    <script src="{{ url('') }}/assets/js/pages/dashboard.js"></script>
+    {{-- <script src="{{ url('') }}/assets/js/pages/dashboard.js"></script> --}}
 
     {{-- JQuery --}}
     <script src="{{ url('') }}/assets/vendors/jquery/jquery.min.js"></script>

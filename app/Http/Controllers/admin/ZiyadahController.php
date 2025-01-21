@@ -5,6 +5,7 @@ namespace App\Http\Controllers\admin;
 use Carbon\Carbon;
 use App\Models\Juz;
 use App\Models\Waktu;
+use App\Models\Santri;
 use App\Models\Ziyadah;
 use App\Models\MasterSurat;
 use Illuminate\Http\Request;
@@ -27,74 +28,6 @@ class ZiyadahController extends Controller
             return $item;
         });
         
-        Carbon::setLocale('id');
-        $tglDb = Carbon::parse($waktu->tgl)->format('d');
-        $tglHariIni = now()->format('d');
-        $tglLengkapHariIni = now()->format('Y-m-d H:i:s');
-        $hariIni = now()->translatedFormat('l');
-        $cekDB = Ziyadah::where('id_waktu', $waktu->id)->exists();
-
-        if ($tglDb != $tglHariIni) {
-            try {
-                $createWaktu = Waktu::create([
-                    'tgl' => $tglLengkapHariIni,
-                    'hari' => $hariIni,
-                ]);
-        
-                if ($createWaktu) {
-                    session()->flash('success', 'Hari Telah berganti');
-                } else {
-                    session()->flash('error', 'Data Waktu gagal ditambahkan.');
-                }
-        
-                $waktuTerbaru = Waktu::latest()->first();
-        
-                if (!$waktuTerbaru) {
-                    session()->flash('error', 'Gagal mendapatkan data waktu terbaru.');
-                    return;
-                }
-        
-                $masterTahfidzan = MasterKetahfidzan::get();
-        
-                foreach ($masterTahfidzan as $row) {
-                    $createTahfidzan = Ziyadah::create([
-                        'id_waktu' => $waktuTerbaru->id,
-                        'id_ustad' => $row->id_ustad,
-                        'id_santri' => $row->id_santri,
-                    ]);
-        
-                    if (!$createTahfidzan) {
-                        session()->flash('error', 'Gagal menambahkan data Tahfidzan.');
-                        break;
-                    }
-                }
-            } catch (\Exception $e) {
-                session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
-            }
-        }elseif($cekDB == false){
-            $waktuTerbaru = Waktu::latest()->first();
-        
-                if (!$waktuTerbaru) {
-                    session()->flash('error', 'Gagal mendapatkan data waktu terbaru.');
-                    return;
-                }
-        
-                $masterTahfidzan = MasterKetahfidzan::get();
-        
-                foreach ($masterTahfidzan as $row) {
-                    $createTahfidzan = Ziyadah::create([
-                        'id_waktu' => $waktuTerbaru->id,
-                        'id_ustad' => $row->id_ustad,
-                        'id_santri' => $row->id_santri,
-                    ]);
-        
-                    if (!$createTahfidzan) {
-                        session()->flash('error', 'Gagal menambahkan data Tahfidzan.');
-                        break;
-                    }
-                }
-        }
-
         $pojok = [];
         for ($i = 1; $i <= 20; $i++) {
             $pojok[] = (object) ['id' => $i,'nomor' => $i];
@@ -231,6 +164,15 @@ class ZiyadahController extends Controller
                 break;
             default:
                 return response()->json(['message' => 'Field tidak valid'], 400);
+        }
+        
+        if($field == 'status' && $request->value != 1){
+            $santri = Santri::where('id', $tahfidzan->id_santri)
+            ->first();
+
+            $santri->update([
+                'status' => $request->value
+            ]);
         }
 
         $tahfidzan->update([

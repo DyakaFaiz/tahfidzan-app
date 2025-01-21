@@ -20,6 +20,11 @@ use App\Http\Controllers\admin\EvaluasiController;
 Route::get('/', [AuthController::class, 'login'])->name('login');
 Route::post('/login-proses', [AuthController::class, 'loginProses'])->name('login-proses');
 
+Route::get('/import', [ImportExcelController::class, 'index'])->name('index-import');
+Route::post('/import', [ImportExcelController::class, 'updateSantri'])->name('import');
+
+Route::get('/export-test', [DashboardController::class, 'exportBlangko'])->name('export-blangko');
+
 Route::middleware(['login'])->group(function () {
 
     Route::group([
@@ -29,6 +34,7 @@ Route::middleware(['login'])->group(function () {
         Route::get('/', [DashboardController::class, 'index']);
 
         Route::post('/form-blangko', [DashboardController::class, 'blangko'])->name('form-blangko');
+        Route::post('/diagram-ziyadah', [DashboardController::class, 'diagramZiyadah'])->name('diagram-ziyadah');
     });
 
     Route::group([
@@ -124,11 +130,9 @@ Route::middleware(['login'])->group(function () {
             'middleware' => 'roleAccess:1|2'
         ], function () {
             Route::get('/', [EvaluasiController::class, 'index'])->name('index');
+            Route::post('/tahfidzan', [EvaluasiController::class, 'updateEvaluasi'])->name('update-evaluasi');
         });
     });
-
-    Route::get('/import', [ImportExcelController::class, 'index'])->name('index-import');
-    Route::post('/import', [ImportExcelController::class, 'ketahfidzan'])->name('import');
 
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 

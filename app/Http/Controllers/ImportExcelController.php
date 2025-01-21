@@ -180,4 +180,23 @@ class ImportExcelController extends Controller
 
         return back()->with('success', 'Data berhasil diimport!');
     }
+
+    public function updateSantri(Request $request){
+        $file = $request->file('excel');
+        
+        $spreadsheet = IOFactory::load($file);
+        $sheet = $spreadsheet->getSheet(4); // Sheet pertama (index dimulai dari 0)
+        dd($sheet);
+        $rows = $sheet->toArray();
+
+        foreach ($rows as $row) {
+           if (!empty($row[0]) && !empty($row[4])) {
+                Santri::where('id', $row[0])->update([
+                    'id_kelas' => $row[4],
+                ]);
+            }
+        }
+
+        return back()->with('success', 'Data berhasil diimport!');
+    }
 }
