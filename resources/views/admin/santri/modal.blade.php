@@ -42,22 +42,6 @@
                                             </div>
 
                                             <div class="col-md-4">
-                                                <label>Target Pojok</label>
-                                            </div>
-                                            <div class="col-md-8 form-group">
-                                                <input type="number" id="trgt-pjk" class="form-control"
-                                                    name="targetPojok" placeholder="Target Pojok">
-                                            </div>
-
-                                            <div class="col-md-4">
-                                                <label>Target Lembaga</label>
-                                            </div>
-                                            <div class="col-md-8 form-group">
-                                                <input type="number" id="trgt-lbg" class="form-control"
-                                                    name="targetLembaga" placeholder="Target Lembaga">
-                                            </div>
-
-                                            <div class="col-md-4">
                                                 <label>Status</label>
                                             </div>
                                             <div class="col-md-8 form-group">

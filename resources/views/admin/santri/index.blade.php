@@ -47,8 +47,6 @@
 
             $('#nama').val('');
             $('#kelas').val('');
-            $('#trgt-pjk').val('');
-            $('#trgt-lbg').val('');
             $('#idEdit').val('');
 
             $.ajax({
@@ -57,8 +55,6 @@
                 success: function (response) {
                     $('#idEdit').val(response.id);
                     $('#nama').val(response.nama);
-                    $('#trgt-pjk').val(response.jml_target_pojok);
-                    $('#trgt-lbg').val(response.jml_target_lembaga);
                     
                     $('#kelas').val(response.id_kelas).change();
                     $('#status').val(response.status).change();
@@ -87,8 +83,6 @@
                 _token: '{{ csrf_token() }}',
                 nama: $('#nama').val(),
                 kelas: $('#kelas').val(),
-                targetPojok: $('#trgt-pjk').val(),
-                targetLembaga: $('#trgt-lbg').val(),
                 status: $('#status').val(),
             };
 
@@ -184,8 +178,6 @@
         $('#btn-tambah-santri').on('click', function(){
             $('#tambah-nama').val('');
             $('#tambah-kelas').val('');
-            $('#tambah-trgt-pjk').val('');
-            $('#tambah-trgt-lbg').val('');
         });
     });
 </script>

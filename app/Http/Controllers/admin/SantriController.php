@@ -58,15 +58,11 @@ class SantriController extends Controller
         $request->validate([
             'nama'     => 'required|string',
             'kelas'     => 'required|string',
-            'targetPojok'     => 'required|numeric',
-            'targetLembaga'     => 'required|numeric',
         ]);
         
         $data = [
             'nama'  => $request->nama,
             'kelas'  => $request->kelas,
-            'jml_target_pojok'  => $request->targetPojok,
-            'jml_target_lembaga'  => $request->targetLembaga,
             'status'  => 1,
         ];
 
@@ -91,8 +87,6 @@ class SantriController extends Controller
         $validator = Validator::make($request->all(), [
             'nama' => 'required|string|max:255',
             'kelas'     => 'required|string',
-            'targetPojok'     => 'required|string',
-            'targetLembaga'     => 'required|string',
             'status'     => 'required|string',
         ]);
 
@@ -105,8 +99,6 @@ class SantriController extends Controller
         $user->update([
             'nama' => $request->nama,
             'id_kelas'  => $request->kelas,
-            'jml_target_pojok'  => $request->targetPojok,
-            'jml_target_lembaga'  => $request->targetLembaga,
             'status'  => $request->status,
         ]);
 
