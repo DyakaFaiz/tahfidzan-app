@@ -48,6 +48,9 @@ class BlangkoExports implements FromCollection, WithHeadings, WithEvents
                 $sheet->mergeCells('U1:U2');
 
                 $sheet->mergeCells('V1:V2');
+                $sheet->mergeCells('W1:W2');
+                $sheet->mergeCells('X1:X2');
+                $sheet->mergeCells('Y1:Y2');
                 
                 $sheet->setCellValue('C1', 'ZIADAH');
                 $sheet->setCellValue('L1', 'JML(POJOK)');
