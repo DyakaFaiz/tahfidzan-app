@@ -304,8 +304,37 @@
                         }
                     }
 
+                    function toRoman(num) {
+                        const romanNumerals = [
+                            { value: 1000, numeral: "M" },
+                            { value: 900, numeral: "CM" },
+                            { value: 500, numeral: "D" },
+                            { value: 400, numeral: "CD" },
+                            { value: 100, numeral: "C" },
+                            { value: 90, numeral: "XC" },
+                            { value: 50, numeral: "L" },
+                            { value: 40, numeral: "XL" },
+                            { value: 10, numeral: "X" },
+                            { value: 9, numeral: "IX" },
+                            { value: 5, numeral: "V" },
+                            { value: 4, numeral: "IV" },
+                            { value: 1, numeral: "I" }
+                        ];
+                        
+                        let result = "";
+                        for (const { value, numeral } of romanNumerals) {
+                            while (num >= value) {
+                                result += numeral;
+                                num -= value;
+                            }
+                        }
+                        return result;
+                    }
+
+                    let classStick = Object.keys(response.dataChart).map(Number).map(toRoman);
+
                     chartZiyadah = new ApexCharts($('#chart-ziyadah')[0], optionsDiagramZiyadah);
-                    chartZiyadah.render(); // Render chart pertama kali
+                    chartZiyadah.render();
 
                     var dataChart = response.dataChart; // Pastikan dataChart adalah objek yang valid
                     var categories = Object.keys(dataChart);
@@ -345,7 +374,7 @@
                             colors: ["transparent"],
                         },
                         xaxis: {
-                            categories: ["Kelas VII", "Kelas VIII", "Kelas IX", "Kelas X", "Kelas XI", "Kelas XII"],
+                            categories: classStick,
                         },
                         yaxis: {
                             title: {
@@ -447,7 +476,7 @@
             event.preventDefault();
 
             let formData = $(this).serialize();
-            formData += '&_token=' + $('meta[name="csrf-token"]').attr('content');
+            formData += '&_token=' + $('meta[name="csrf-token"]').attr('conexnt');
             
             let url = baseUrl + '{{ $url }}' + '/diagram-ziyadah';
             
@@ -484,8 +513,36 @@
                     chartZiyadah.render();
 
                     var dataChart = response.dataChart; // Pastikan dataChart adalah objek yang valid
-                    console.log(dataChart);
                     var categories = Object.keys(dataChart);
+
+                    function toRoman(num) {
+                        const romanNumerals = [
+                            { value: 1000, numeral: "M" },
+                            { value: 900, numeral: "CM" },
+                            { value: 500, numeral: "D" },
+                            { value: 400, numeral: "CD" },
+                            { value: 100, numeral: "C" },
+                            { value: 90, numeral: "XC" },
+                            { value: 50, numeral: "L" },
+                            { value: 40, numeral: "XL" },
+                            { value: 10, numeral: "X" },
+                            { value: 9, numeral: "IX" },
+                            { value: 5, numeral: "V" },
+                            { value: 4, numeral: "IV" },
+                            { value: 1, numeral: "I" }
+                        ];
+                        
+                        let result = "";
+                        for (const { value, numeral } of romanNumerals) {
+                            while (num >= value) {
+                                result += numeral;
+                                num -= value;
+                            }
+                        }
+                        return result;
+                    }
+
+                    let classStick = Object.keys(response.dataChart).map(Number).map(toRoman);
 
                     var barOptions = {
                         series: [
@@ -522,7 +579,7 @@
                             colors: ["transparent"],
                         },
                         xaxis: {
-                            categories: ["Kelas VII", "Kelas VIII", "Kelas IX", "Kelas X", "Kelas XI", "Kelas XII"],
+                            categories: classStick,
                         },
                         yaxis: {
                             title: {

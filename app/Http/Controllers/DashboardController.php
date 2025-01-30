@@ -17,7 +17,10 @@ use App\Models\TahsinBinnadhor;
 use App\Models\MasterKetahfidzan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use App\Models\Target;
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Maatwebsite\Excel\Events\AfterSheet;
 
 class DashboardController extends Controller
 {
@@ -484,7 +487,7 @@ class DashboardController extends Controller
         
                 'totalSeluruhPojok' => $jmlAllPojok ?? 0,
         
-                'lvlDeresan' => 'Testing',
+                'lvlDeresan' => ($jmlAllPojok > 5) ? "A" : (($jmlAllPojok == 5) ? "B" : (($jmlAllPojok >= 3 && $jmlAllPojok <= 4) ? "C" : (($jmlAllPojok >= 1 && $jmlAllPojok <= 2) ? "K" : "-"))),
         
                 'juzAkhirTahsinBinnadhor' => $dataTahsinBinnadhor[$idSantri]['juzAkhir'] ?? '-',
                 'pojokAkhirTahsinBinnadhor' => $dataTahsinBinnadhor[$idSantri]['pojokAkhir'] ?? 0,
@@ -537,10 +540,124 @@ class DashboardController extends Controller
 
     }
 
+    // public function exportBlangko(Request $request)
+    // {
+    //     return Excel::download(new BlangkoExports, 'data.xlsx');
+    // }
     public function exportBlangko(Request $request)
     {
-        return Excel::download(new BlangkoExports, 'data.xlsx');
+        // Buat objek spreadsheet baru
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Menambahkan 3 baris kosong di atas data
+        for ($i = 1; $i <= 3; $i++) {
+            $sheet->insertNewRowBefore($i, 1); // Menyisipkan baris kosong
+        }
+
+        // Menambahkan merge cells dan pengaturan header
+        $sheet->mergeCells('C1:F1');
+        $sheet->mergeCells('H1:K1');
+        $sheet->mergeCells('M1:P1');
+        // $sheet->mergeCells('T1:U1');
+        // $sheet->mergeCells('V1:Y1');
+
+        $sheet->mergeCells('C2:D2');
+        $sheet->mergeCells('E2:F2');
+
+        $sheet->mergeCells('H2:I2');
+        $sheet->mergeCells('J2:K2');
+
+        $sheet->mergeCells('M2:N2');
+        $sheet->mergeCells('O2:P2');
+        
+        $sheet->mergeCells('A1:A3');
+        $sheet->mergeCells('B1:B3');
+        $sheet->mergeCells('G1:G3');
+        $sheet->mergeCells('L1:L3');
+        // $sheet->mergeCells('Q1:Q3');
+        // $sheet->mergeCells('R1:R3');
+        // $sheet->mergeCells('S1:S3');
+
+        // $sheet->mergeCells('T1:T2');
+        // $sheet->mergeCells('U1:U2');
+
+        // $sheet->mergeCells('V1:V2');
+        // $sheet->mergeCells('W1:W2');
+        // $sheet->mergeCells('X1:X2');
+        // $sheet->mergeCells('Y1:Y2');
+
+        // Set label untuk merged cells
+        $sheet->setCellValue('A1', 'No');
+        $sheet->setCellValue('B1', 'Nama');
+        $sheet->setCellValue('C1', 'ZIADAH');
+        $sheet->setCellValue('G1', 'JML(POJOK)');
+        $sheet->setCellValue('H1', 'DERESAN A');
+        $sheet->setCellValue('L1', 'JML(POJOK)');
+        $sheet->setCellValue('M1', 'DERESAN B');
+        $sheet->setCellValue('T1', 'BIN NADHOR');
+        $sheet->setCellValue('V1', 'KEHADIRAN');
+        
+        // Set label untuk merged cells di baris kedua
+        $sheet->setCellValue('C2', 'AWAL');
+        $sheet->setCellValue('E2', 'AKHIR');
+        $sheet->setCellValue('H2', 'AWAL');
+        $sheet->setCellValue('J2', 'AKHIR');
+        $sheet->setCellValue('M2', 'AWAL');
+        $sheet->setCellValue('O2', 'AKHIR');
+        
+        $sheet->setCellValue('C3', 'JUZ');
+        $sheet->setCellValue('D3', 'PJ');
+
+        $sheet->setCellValue('E3', 'JUZ');
+        $sheet->setCellValue('F3', 'PJ');
+
+        $sheet->setCellValue('H3', 'JUZ');
+        $sheet->setCellValue('I3', 'PJ');
+
+        $sheet->setCellValue('J3', 'JUZ');
+        $sheet->setCellValue('K3', 'PJ');
+
+        $sheet->setCellValue('M3', 'JUZ');
+        $sheet->setCellValue('N3', 'PJ');
+
+        $sheet->setCellValue('O3', 'JUZ');
+        $sheet->setCellValue('P3', 'PJ');
+        
+        // Set style untuk font dan alignment
+        $sheet->getStyle('A1:X1')->getFont()->setBold(true);
+        $sheet->getStyle('A2:X2')->getFont()->setBold(true);
+        $sheet->getStyle('A3:X3')->getFont()->setBold(true);
+        $sheet->getStyle('A1:X3')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A1:X3')->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+
+        // Menentukan data yang ingin dimasukkan
+        $data = [
+            ['2', 'Jane Doe', '15', '50', '14', '48', '5', '65', '6', '8', '40', '50', '60', '6', '3', '5', '4', '130', '130', '3', '4', '2', '1', '4', '3']
+        ];
+
+        // Menambahkan data ke baris berikutnya (baris ke-4 setelah 3 baris kosong)
+        $row = 4;
+        foreach ($data as $rowData) {
+            $sheet->fromArray($rowData, null, 'A' . $row++);
+        }
+
+        // Menulis file Excel langsung ke output untuk diunduh
+        $writer = new Xlsx($spreadsheet);
+        $filename = 'data.xlsx';
+
+        return response()->stream(
+            function() use ($writer) {
+                $writer->save('php://output');
+            },
+            200,
+            [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            ]
+        );
     }
+
 
     private function getHafalan($data)
     {
