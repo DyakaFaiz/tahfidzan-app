@@ -118,13 +118,13 @@
                     </button>
                     <div class="row mt-4">
                         <div class="col-md-4 text-center">
-                            <h3 id="text-tgl-awal"></h3>
+                            <h3 id="text-tgl-awal-blangko"></h3>
                         </div>
                         <div class="col-md-4 text-center">
-                            <h3 id="text-emote"></h3>
+                            <h3 id="text-emote-blangko"></h3>
                         </div>
                         <div class="col-md-4 text-center">
-                            <h3 id="text-tgl-akhir"></h3>
+                            <h3 id="text-tgl-akhir-blangko"></h3>
                         </div>
                     </div>
                 </form>
@@ -191,6 +191,12 @@
                                 {{-- Simple DataTable --}}
                             </tbody>
                         </table>
+                        <form action="{{ route('dashboard.export-blangko') }}" id="form-cetak-blangko" class="d-none" method="POST">
+                            @csrf
+                            <input type="hidden" name="tglAwalBlangko" id="tanggal-awal-blangko">
+                            <input type="hidden" name="tglAkhirBlangko" id="tanggal-akhir-blangko">
+                            <button type="submit" id="btn-cetak-blangko" class="btn icon icon-left btn-success"><i data-feather="check-circle"></i> Cetak</button>
+                        </form>
                     </div>
                 </div>
                 {{-- /Blangko --}}
@@ -461,6 +467,11 @@
                     $('#text-emote').text('➡️')
                     $('#text-tgl-akhir').text(response.txtTglAkhir)
                     $('#tabel-blangko').removeClass('d-none');
+                    
+                    $("#tanggal-awal-blangko").val(response.formattedAwal);
+                    $("#tanggal-akhir-blangko").val(response.formattedAkhir);
+                    $('#form-cetak-blangko').removeClass('d-none');
+
                     hideLoading();
                 },
                 error: function (xhr) {
@@ -476,8 +487,7 @@
             event.preventDefault();
 
             let formData = $(this).serialize();
-            formData += '&_token=' + $('meta[name="csrf-token"]').attr('conexnt');
-            
+            formData += '&_token=' + $('meta[name="csrf-token"]').attr('content');
             let url = baseUrl + '{{ $url }}' + '/diagram-ziyadah';
             
             $.ajax({
@@ -602,10 +612,6 @@
                     chartZiyadahKelas = new ApexCharts($("#bar")[0], barOptions);
                     chartZiyadahKelas.render();
 
-                    // $('#text-tgl-awal').text(response.txtTglAwal)
-                    // $('#text-emote').text('➡️')
-                    // $('#text-tgl-akhir').text(response.txtTglAkhir)
-                    // $('#tabel-blangko').removeClass('d-none');
                     hideLoading();
                 },
                 error: function (xhr) {

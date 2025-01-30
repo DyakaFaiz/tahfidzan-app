@@ -23,7 +23,7 @@ Route::post('/login-proses', [AuthController::class, 'loginProses'])->name('logi
 Route::get('/import', [ImportExcelController::class, 'index'])->name('index-import');
 Route::post('/import', [ImportExcelController::class, 'updateSantri'])->name('import');
 
-Route::get('/export-test', [DashboardController::class, 'exportBlangko'])->name('export-blangko');
+Route::get('/export-test', [DashboardController::class, 'exportBlangko'])->name('export-blangko-test');
 
 Route::middleware(['login'])->group(function () {
 
@@ -35,6 +35,7 @@ Route::middleware(['login'])->group(function () {
 
         Route::post('/form-blangko', [DashboardController::class, 'blangko'])->name('form-blangko');
         Route::post('/diagram-ziyadah', [DashboardController::class, 'diagramZiyadah'])->name('diagram-ziyadah');
+        Route::post('/export-blangko', [DashboardController::class, 'exportBlangko'])->name('export-blangko');
     });
 
     Route::group([

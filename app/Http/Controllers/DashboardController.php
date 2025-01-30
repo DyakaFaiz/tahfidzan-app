@@ -256,7 +256,7 @@ class DashboardController extends Controller
                 'persentaseTidakTarget' => round($persentaseTidakTarget, 2),
                 'txtTglAwal' => $textTglAwal,
                 'txtTglAkhir' => $textTglAkhir,
-                'dataChart' => $dataDiagramStick
+                'dataChart' => $dataDiagramStick,
             ]);
         }else{
 
@@ -505,7 +505,9 @@ class DashboardController extends Controller
             'txtTglAkhir' => $textTglAkhir,
             'title'  => 'Dashboard',
             'pageHeading'   => 'Dashboard',
-            'url'   => 'dashboard'
+            'url'   => 'dashboard',
+            'formattedAwal'  => $formattedAwal,
+            'formattedAkhir'  => $formattedAkhir,
         ];
 
         return response()->json($data);
@@ -540,111 +542,277 @@ class DashboardController extends Controller
 
     }
 
-    // public function exportBlangko(Request $request)
-    // {
-    //     return Excel::download(new BlangkoExports, 'data.xlsx');
-    // }
     public function exportBlangko(Request $request)
     {
+        $idUser = session('idUser');
+        $idRole = session('idRole');
+        $namaUser = session('namaUser');
+        
+        $formattedAwal = Carbon::parse($request->tglAwalBlangko)->format('Y-m-d');
+        $formattedAkhir = Carbon::parse($request->tglAkhirBlangko)->format('Y-m-d');
+
+        $textTglAwal = Carbon::parse($request->tglAwalBlangko)->locale('id')->format('d F Y');
+        $textTglAkhir = Carbon::parse($request->tglAkhirBlangko)->locale('id')->format('d F Y');
+
+        $getIdWaktu = Waktu::whereRaw('DATE(tgl) BETWEEN ? AND ?', [$formattedAwal, $formattedAkhir])->pluck('id');
+        $idWaktus = $getIdWaktu->toArray();
+
+        $deresanA = DeresanA::select('deresan_a.*', 'juzAwal.nomor AS juzAwal', 'santri.nama AS namaSantri', 'juzAkhir.nomor AS juzAkhir')
+            ->leftJoin('santri', 'santri.id', '=', 'deresan_a.id_santri')
+            ->leftJoin('master_juz AS juzAwal', 'juzAwal.id', '=', 'deresan_a.juz_awal')
+            ->leftJoin('master_juz AS juzAkhir', 'juzAkhir.id', '=', 'deresan_a.juz_akhir')
+            ->whereIn('id_waktu', $idWaktus)
+            ->when($idRole == 2, function ($query) use ($idUser) {
+                return $query->where('id_ustad', $idUser);
+            })
+            ->get();
+
+        $murojaah = Murojaah::select('murojaah.*', 'juzAwal.nomor AS juzAwal', 'santri.nama AS namaSantri', 'juzAkhir.nomor AS juzAkhir')
+                ->leftJoin('santri', 'santri.id', '=', 'murojaah.id_santri')
+                ->leftJoin('master_juz AS juzAwal', 'juzAwal.id', '=', 'murojaah.juz_awal')
+                ->leftJoin('master_juz AS juzAkhir', 'juzAkhir.id', '=', 'murojaah.juz_akhir')
+                ->whereIn('id_waktu', $idWaktus)
+                ->when($idRole == 2, function ($query) use ($idUser) {
+                    return $query->where('id_ustad', $idUser);
+                })
+                ->get();
+        
+        $tahsinBinnadhor = TahsinBinnadhor::select('tahsin_binnadhor.*', 'juzAwal.nomor AS juzAwal', 'santri.nama AS namaSantri', 'juzAkhir.nomor AS juzAkhir')
+                ->leftJoin('santri', 'santri.id', '=', 'tahsin_binnadhor.id_santri')
+                ->leftJoin('master_juz AS juzAwal', 'juzAwal.id', '=', 'tahsin_binnadhor.juz_awal')
+                ->leftJoin('master_juz AS juzAkhir', 'juzAkhir.id', '=', 'tahsin_binnadhor.juz_akhir')
+                ->whereIn('id_waktu', $idWaktus)
+                ->when($idRole == 2, function ($query) use ($idUser) {
+                    return $query->where('id_ustad', $idUser);
+                })
+                ->get();
+        
+        $ziyadah = Ziyadah::select('ziyadah.*', 'juzAwal.nomor AS juzAwal', 'santri.nama AS namaSantri', 'juzAkhir.nomor AS juzAkhir')
+                ->leftJoin('santri', 'santri.id', '=', 'ziyadah.id_santri')
+                ->leftJoin('master_juz AS juzAwal', 'juzAwal.id', '=', 'ziyadah.juz_awal')
+                ->leftJoin('master_juz AS juzAkhir', 'juzAkhir.id', '=', 'ziyadah.juz_akhir')
+                ->whereIn('id_waktu', $idWaktus)
+                ->when($idRole == 2, function ($query) use ($idUser) {
+                    return $query->where('id_ustad', $idUser);
+                })
+                ->get();
+
+        $allData = $deresanA->concat($murojaah)
+                    ->concat($tahsinBinnadhor)
+                    ->concat($ziyadah);
+
+        // Mengambil data dari fungsi getHafalan untuk masing-masing kategori
+        $dataDeresanA = $this->getHafalan($deresanA);
+        $dataMurojaah = $this->getHafalan($murojaah);
+        $dataTahsinBinnadhor = $this->getHafalan($tahsinBinnadhor);
+        $dataZiyadah = $this->getHafalan($ziyadah);
+
+        // Menghitung jumlah pojok untuk setiap kategori
+        $jmlDeresanA = $this->jmlPojok($dataDeresanA);
+        $jmlMurojaah = $this->jmlPojok($dataMurojaah);
+        $jmlTahsinBinnadhor = $this->jmlPojok($dataTahsinBinnadhor);
+        $jmlZiyadah = $this->jmlPojok($dataZiyadah);
+
+        $kehadiran = $allData->groupBy('id_santri')->map(function ($groupBySantri) {
+            return $groupBySantri->groupBy('id_waktu')->map(function ($groupByWaktu) {
+                $setor = $groupByWaktu->where('kehadiran', 1)->count();
+                $tidakSetor = $groupByWaktu->where('kehadiran', 0)->count();
+                $izin = $groupByWaktu->where('kehadiran', 2)->count();
+                $alpha = $groupByWaktu->where('kehadiran', 3)->count();
+        
+                return [
+                    'setor' => $setor,
+                    'tidakSetor' => $tidakSetor,
+                    'izin' => $izin,
+                    'alpha' => $alpha,
+                ];
+            });
+        });
+        
+        $totalSetor = $kehadiran->map(function ($waktus) {
+            return collect($waktus)->sum('setor');
+        });
+        $totalIzin = $kehadiran->map(function ($waktus) {
+            return collect($waktus)->sum('izin');
+        });
+        $totalTidakSetor = $kehadiran->map(function ($waktus) {
+            return collect($waktus)->sum('tidakSetor');
+        });
+        $totalAlpha = $kehadiran->map(function ($waktus) {
+            return collect($waktus)->sum('alpha');
+        });
+        
+        $result = $dataDeresanA->map(function ($deresanData, $idSantri) use ($dataMurojaah, $dataTahsinBinnadhor, $dataZiyadah, $jmlDeresanA, $jmlMurojaah, $jmlTahsinBinnadhor, $jmlZiyadah, $kehadiran, $totalSetor, $totalAlpha, $totalIzin, $totalTidakSetor) {
+            $jmlAllPojok = ($jmlDeresanA[$idSantri] ?? 0) + ($jmlMurojaah[$idSantri] ?? 0) + ($jmlTahsinBinnadhor[$idSantri] ?? 0) + ($jmlZiyadah[$idSantri] ?? 0);
+        
+            return [
+                'no' => $idSantri,
+                'namaSantri'    => $deresanData['namaSantri'],
+        
+                'juzAwalZiyadah' => $dataZiyadah[$idSantri]['juzAwal'] ?? '-',
+                'pojokAwalZiyadah' => $dataZiyadah[$idSantri]['pojokAwal'] ?? 0,
+                'juzAkhirZiyadah' => $dataZiyadah[$idSantri]['juzAkhir'] ?? '-',
+                'pojokAkhirZiyadah' => $dataZiyadah[$idSantri]['pojokAkhir'] ?? 0,
+                'jmlZiyadah' => $jmlZiyadah[$idSantri] ?? 0,
+                
+                'juzAwalDeresanA' => $deresanData['juzAwal'] ?? '-',
+                'pojokAwalDeresanA' => $deresanData['pojokAwal'] ?? 0,
+                'juzAkhirDeresanA' => $deresanData['juzAkhir'] ?? '-',
+                'pojokAkhirDeresanA' => $deresanData['pojokAkhir'] ?? 0,
+                'jmlDeresanA' => $jmlDeresanA[$idSantri] ?? 0,
+                
+                'juzAwalMurojaah' => $dataMurojaah[$idSantri]['juzAwal'] ?? '-',
+                'pojokAwalMurojaah' => $dataMurojaah[$idSantri]['pojokAwal'] ?? 0,
+                'juzAkhirMurojaah' => $dataMurojaah[$idSantri]['juzAkhir'] ?? '-',
+                'pojokAkhirMurojaah' => $dataMurojaah[$idSantri]['pojokAkhir'] ?? 0,
+                'jmlMurojaah' => $jmlMurojaah[$idSantri] ?? 0,
+        
+                'totalSeluruhPojok' => $jmlAllPojok ?? 0,
+        
+                'lvlDeresan' => ($jmlAllPojok > 5) ? "A" : (($jmlAllPojok == 5) ? "B" : (($jmlAllPojok >= 3 && $jmlAllPojok <= 4) ? "C" : (($jmlAllPojok >= 1 && $jmlAllPojok <= 2) ? "K" : "-"))),
+        
+                'juzAkhirTahsinBinnadhor' => $dataTahsinBinnadhor[$idSantri]['juzAkhir'] ?? '-',
+                'pojokAkhirTahsinBinnadhor' => $dataTahsinBinnadhor[$idSantri]['pojokAkhir'] ?? 0,
+                
+                'tidakSetor' => $totalTidakSetor[$idSantri] ?? 0,
+                'izin' => $totalIzin[$idSantri] ?? 0,
+                'alpha' => $totalAlpha[$idSantri] ?? 0,
+                'setor' => $totalSetor[$idSantri] ?? 0,
+            ];
+        });
+
         // Buat objek spreadsheet baru
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-
+        
         // Menambahkan 3 baris kosong di atas data
         for ($i = 1; $i <= 3; $i++) {
             $sheet->insertNewRowBefore($i, 1); // Menyisipkan baris kosong
         }
-
-        // Menambahkan merge cells dan pengaturan header
-        $sheet->mergeCells('C1:F1');
-        $sheet->mergeCells('H1:K1');
-        $sheet->mergeCells('M1:P1');
-        // $sheet->mergeCells('T1:U1');
-        // $sheet->mergeCells('V1:Y1');
-
-        $sheet->mergeCells('C2:D2');
-        $sheet->mergeCells('E2:F2');
-
-        $sheet->mergeCells('H2:I2');
-        $sheet->mergeCells('J2:K2');
-
-        $sheet->mergeCells('M2:N2');
-        $sheet->mergeCells('O2:P2');
         
-        $sheet->mergeCells('A1:A3');
-        $sheet->mergeCells('B1:B3');
-        $sheet->mergeCells('G1:G3');
-        $sheet->mergeCells('L1:L3');
-        // $sheet->mergeCells('Q1:Q3');
-        // $sheet->mergeCells('R1:R3');
-        // $sheet->mergeCells('S1:S3');
+        // Menambahkan merge cells dan pengaturan header
 
-        // $sheet->mergeCells('T1:T2');
-        // $sheet->mergeCells('U1:U2');
+        $sheet->mergeCells('A1:H1');
+        $sheet->setCellValue('A1', 'BLANGKO REKAPAN SANTRI');
+        $sheet->getStyle('A1')->getFont()->setSize(16);
 
-        // $sheet->mergeCells('V1:V2');
-        // $sheet->mergeCells('W1:W2');
-        // $sheet->mergeCells('X1:X2');
-        // $sheet->mergeCells('Y1:Y2');
+        $sheet->mergeCells('A3:H3');
+        $sheet->setCellValue('A3', "Mulai Tanggal : " . $textTglAwal . ".s/d." . $textTglAkhir);
+        $sheet->getStyle('A3')->getFont()->setSize(12); // Mengatur ukuran font menjadi 12
+
+        $sheet->mergeCells('T3:Y3');
+        $sheet->setCellValue('T3', "Halaqoh : " . $namaUser);
+        $sheet->getStyle('T3')->getFont()->setSize(12); // Mengatur ukuran font menjadi 12
+        
+        $sheet->mergeCells('C5:F5');
+        $sheet->mergeCells('H5:K5');
+        $sheet->mergeCells('M5:P5');
+
+        $sheet->mergeCells('C6:D6');
+        $sheet->mergeCells('E6:F6');
+
+        $sheet->mergeCells('H6:I6');
+        $sheet->mergeCells('J6:K6');
+
+        $sheet->mergeCells('M6:N6');
+        $sheet->mergeCells('O6:P6');
+        
+        $sheet->mergeCells('A5:A7');
+        $sheet->mergeCells('B5:B7');
+        $sheet->mergeCells('G5:G7');
+        $sheet->mergeCells('L5:L7');
+        $sheet->mergeCells('Q5:Q7');
+        $sheet->mergeCells('R5:R7');
+        $sheet->mergeCells('S5:S7');
+
+        $sheet->mergeCells('T5:U6');
+        $sheet->mergeCells('V5:Y6');
 
         // Set label untuk merged cells
-        $sheet->setCellValue('A1', 'No');
-        $sheet->setCellValue('B1', 'Nama');
-        $sheet->setCellValue('C1', 'ZIADAH');
-        $sheet->setCellValue('G1', 'JML(POJOK)');
-        $sheet->setCellValue('H1', 'DERESAN A');
-        $sheet->setCellValue('L1', 'JML(POJOK)');
-        $sheet->setCellValue('M1', 'DERESAN B');
-        $sheet->setCellValue('T1', 'BIN NADHOR');
-        $sheet->setCellValue('V1', 'KEHADIRAN');
+        $sheet->setCellValue('A5', 'No');
+        $sheet->setCellValue('B5', 'Nama');
+        $sheet->setCellValue('C5', 'ZIADAH');
+        $sheet->setCellValue('G5', 'JML(POJOK)');
+        $sheet->setCellValue('H5', 'DERESAN A');
+        $sheet->setCellValue('L5', 'JML(POJOK)');
+        $sheet->setCellValue('M5', 'DERESAN B');
+        $sheet->setCellValue('Q5', 'JML(POJOK)');
+        $sheet->setCellValue('R5', 'TOTAL DERESAN(POJOK)');
+        $sheet->setCellValue('S5', 'LEVEL DERESAN');
+        $sheet->setCellValue('T5', 'BIN NADHOR');
+        $sheet->setCellValue('V5', 'KEHADIRAN');
         
         // Set label untuk merged cells di baris kedua
-        $sheet->setCellValue('C2', 'AWAL');
-        $sheet->setCellValue('E2', 'AKHIR');
-        $sheet->setCellValue('H2', 'AWAL');
-        $sheet->setCellValue('J2', 'AKHIR');
-        $sheet->setCellValue('M2', 'AWAL');
-        $sheet->setCellValue('O2', 'AKHIR');
+        $sheet->setCellValue('C6', 'AWAL');
+        $sheet->setCellValue('E6', 'AKHIR');
+        $sheet->setCellValue('H6', 'AWAL');
+        $sheet->setCellValue('J6', 'AKHIR');
+        $sheet->setCellValue('M6', 'AWAL');
+        $sheet->setCellValue('O6', 'AKHIR');
+
+        $sheet->setCellValue('T7', 'JUZ');
+        $sheet->setCellValue('U7', 'PJ');
+
+        $sheet->setCellValue('V7', 'TS');
+        $sheet->setCellValue('W7', 'I');
+        $sheet->setCellValue('X7', 'A');
+        $sheet->setCellValue('Y7', 'P');
         
-        $sheet->setCellValue('C3', 'JUZ');
-        $sheet->setCellValue('D3', 'PJ');
+        $sheet->setCellValue('C7', 'JUZ');
+        $sheet->setCellValue('D7', 'PJ');
 
-        $sheet->setCellValue('E3', 'JUZ');
-        $sheet->setCellValue('F3', 'PJ');
+        $sheet->setCellValue('E7', 'JUZ');
+        $sheet->setCellValue('F7', 'PJ');
 
-        $sheet->setCellValue('H3', 'JUZ');
-        $sheet->setCellValue('I3', 'PJ');
+        $sheet->setCellValue('H7', 'JUZ');
+        $sheet->setCellValue('I7', 'PJ');
 
-        $sheet->setCellValue('J3', 'JUZ');
-        $sheet->setCellValue('K3', 'PJ');
+        $sheet->setCellValue('J7', 'JUZ');
+        $sheet->setCellValue('K7', 'PJ');
 
-        $sheet->setCellValue('M3', 'JUZ');
-        $sheet->setCellValue('N3', 'PJ');
+        $sheet->setCellValue('M7', 'JUZ');
+        $sheet->setCellValue('N7', 'PJ');
 
-        $sheet->setCellValue('O3', 'JUZ');
-        $sheet->setCellValue('P3', 'PJ');
+        $sheet->setCellValue('O7', 'JUZ');
+        $sheet->setCellValue('P7', 'PJ');
         
         // Set style untuk font dan alignment
-        $sheet->getStyle('A1:X1')->getFont()->setBold(true);
-        $sheet->getStyle('A2:X2')->getFont()->setBold(true);
-        $sheet->getStyle('A3:X3')->getFont()->setBold(true);
-        $sheet->getStyle('A1:X3')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('A1:X3')->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+        $sheet->getStyle('A1:H1')->getFont()->setBold(true);
+        $sheet->getStyle('A3:H3')->getFont()->setBold(true);
+        $sheet->getStyle('T3:Y3')->getFont()->setBold(true);
 
-        // Menentukan data yang ingin dimasukkan
-        $data = [
-            ['2', 'Jane Doe', '15', '50', '14', '48', '5', '65', '6', '8', '40', '50', '60', '6', '3', '5', '4', '130', '130', '3', '4', '2', '1', '4', '3']
-        ];
+        $sheet->getStyle('A1:H3')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A1:H3')->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+        $sheet->getStyle('T3:Y3')->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+
+        $sheet->getStyle('A5:Y5')->getFont()->setBold(true);
+        $sheet->getStyle('A6:Y6')->getFont()->setBold(true);
+        $sheet->getStyle('A7:Y7')->getFont()->setBold(true);
+        $sheet->getStyle('A5:Y7')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A5:Y7')->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
 
         // Menambahkan data ke baris berikutnya (baris ke-4 setelah 3 baris kosong)
-        $row = 4;
-        foreach ($data as $rowData) {
+        $row = 8;  // Mulai dari baris 8, misalnya, untuk menempatkan data pertama
+
+        // Menambahkan data ke spreadsheet
+        foreach ($result as $rowData) {
             $sheet->fromArray($rowData, null, 'A' . $row++);
         }
 
+        // Menambahkan 4 baris kosong setelah data terakhir
+        for ($i = 0; $i < 4; $i++) {
+            $sheet->insertNewRowBefore($row, 1); // Menyisipkan baris kosong
+            $row++;  // Menyesuaikan baris setelah menambahkan baris kosong
+        }
+
+        // Menambahkan teks catatan setelah baris kosong
+        $sheet->setCellValue('A' . $row, 'Catatan : ');
+        $sheet->mergeCells('A' . $row . ':D' . $row);  // Menggabungkan beberapa kolom untuk teks catatan
+        $sheet->getStyle(' A ' . $row )->getFont()->setSize(16);
+
         // Menulis file Excel langsung ke output untuk diunduh
         $writer = new Xlsx($spreadsheet);
-        $filename = 'data.xlsx';
+        $filename = 'Blangko Rekapan Santri ' . $namaUser . '.xlsx';
 
         return response()->stream(
             function() use ($writer) {
@@ -657,7 +825,6 @@ class DashboardController extends Controller
             ]
         );
     }
-
 
     private function getHafalan($data)
     {
