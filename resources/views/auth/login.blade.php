@@ -45,7 +45,15 @@
                 </div>
             </div>
             <div class="col-lg-7 d-none d-lg-block">
-                <div id="auth-right">
+            <div id="auth-right" style="background-image: url('{{ asset('3.png') }}'); 
+               background-size: cover; 
+               background-position: center; 
+               background-repeat: no-repeat;">
+                           >
+
+    </div>
+</div>
+
 
                 </div>
             </div>
