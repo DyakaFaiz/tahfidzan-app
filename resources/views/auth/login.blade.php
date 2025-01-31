@@ -33,7 +33,7 @@
                     </div>
                     <h1 class="auth-title">Log in.</h1>
 
-                    <form action="{{ route('login-proses') }}" method="POST">
+                    <form action="{{ url('/login-proses') }}" method="POST">
                         @csrf
                         <div class="form-group position-relative has-icon-left mb-4">
                             <input type="text" class="form-control form-control-xl" name="username" placeholder="Username" value="{{ @old('username') }}">
