@@ -1,5 +1,5 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/tahq2789/public_html/
+    - export DEPLOYPATH=/laravel-tahfidzan/
     - /bin/cp -r * $DEPLOYPATH
