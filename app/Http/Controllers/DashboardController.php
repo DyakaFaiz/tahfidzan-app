@@ -361,7 +361,7 @@ class DashboardController extends Controller
             ]);
         } catch (ValidationException $e) {
             return response()->json([
-                'success' => false,
+                'error' => "Isikan terlebih dahulu tanggalnya",
                 'errors' => $e->errors(),
             ], 422);
         }
@@ -697,7 +697,7 @@ class DashboardController extends Controller
         $sheet->getStyle('A1')->getFont()->setSize(16);
 
         $sheet->mergeCells('A3:H3');
-        $sheet->setCellValue('A3', "Mulai Tanggal : " . $textTglAwal . ".s/d." . $textTglAkhir);
+        $sheet->setCellValue('A3', "Mulai Tanggal : " . $textTglAwal . " s/d " . $textTglAkhir);
         $sheet->getStyle('A3')->getFont()->setSize(12); // Mengatur ukuran font menjadi 12
 
         $sheet->mergeCells('T3:Y3');
@@ -799,16 +799,16 @@ class DashboardController extends Controller
             $sheet->fromArray($rowData, null, 'A' . $row++);
         }
 
-        // Menambahkan 4 baris kosong setelah data terakhir
-        for ($i = 0; $i < 4; $i++) {
-            $sheet->insertNewRowBefore($row, 1); // Menyisipkan baris kosong
-            $row++;  // Menyesuaikan baris setelah menambahkan baris kosong
-        }
+        // // Menambahkan 4 baris kosong setelah data terakhir
+        // for ($i = 0; $i < 4; $i++) {
+        //     $sheet->insertNewRowBefore($row, 1); // Menyisipkan baris kosong
+        //     $row++;  // Menyesuaikan baris setelah menambahkan baris kosong
+        // }
 
-        // Menambahkan teks catatan setelah baris kosong
-        $sheet->setCellValue('A' . $row, 'Catatan : ');
-        $sheet->mergeCells('A' . $row . ':D' . $row);  // Menggabungkan beberapa kolom untuk teks catatan
-        $sheet->getStyle(' A ' . $row )->getFont()->setSize(16);
+        // // Menambahkan teks catatan setelah baris kosong
+        // $sheet->setCellValue('A' . $row, 'Catatan : ');
+        // $sheet->mergeCells('A' . $row . ':D' . $row);  // Menggabungkan beberapa kolom untuk teks catatan
+        // $sheet->getStyle(' A ' . $row )->getFont()->setSize(16);
 
         // Menulis file Excel langsung ke output untuk diunduh
         $writer = new Xlsx($spreadsheet);

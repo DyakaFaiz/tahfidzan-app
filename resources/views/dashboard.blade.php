@@ -51,6 +51,17 @@
     <div class="col">
         <div class="card">
             <div class="card-body">
+                <div id="text-waktu-ziyadah" class="row d-none mb-3">
+                    <div class="col-md-4 text-center">
+                        <h3 id="text-tgl-awal-ziyadah"></h3>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <h3 id="text-emote-ziyadah"></h3>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <h3 id="text-tgl-akhir-ziyadah"></h3>
+                    </div>
+                </div>
                 <div class="row">
                     <div class="col-md-8 col-12">
                         <div class="card">
@@ -78,20 +89,9 @@
                                         <input type="date" class="form-control" name="tglAkhir" id="tgl-akhir" min="{{ $tglMin }}" max="{{ $tglMax }}">
                                     </div>
                                 </div>
-                                <button type="submit" class="btn btn-sm btn-primary float-end">
+                                <button type="submit" class="btn btn-sm btn-primary">
                                     <i class="bi bi-file-earmark-ruled-fill"></i>
                                 </button>
-                                <div class="row mt-4">
-                                    <div class="col-md-4 text-center">
-                                        <h3 id="text-tgl-awal-ziyadah"></h3>
-                                    </div>
-                                    <div class="col-md-4 text-center">
-                                        <h3 id="text-emote-ziyadah"></h3>
-                                    </div>
-                                    <div class="col-md-4 text-center">
-                                        <h3 id="text-tgl-akhir-ziyadah"></h3>
-                                    </div>
-                                </div>
                             </form>
                             <div id="chart-ziyadah"></div>
                         </div>
@@ -285,139 +285,135 @@
         formData += '&_token=' + $('meta[name="csrf-token"]').attr('content');
         let url = baseUrl + '{{ $url }}' + '/diagram-ziyadah';
         $.ajax({
-                url: url,
-                type: 'POST',
-                data: formData,
-                success: function (response) {
-                    let optionsDiagramZiyadah  = {
-                        series: [response.persentaseTarget, response.persentaseTidakTarget, response.persentaseKhatam],
-                        labels: ['Target', 'Tidak Target', 'Khatam'],
-                        colors: ['#5B913B','#BE3144', '#FFD65A'],
-                        chart: {
-                            type: 'donut',
-                            width: '100%',
-                            height:'350px'
-                        },
-                        legend: {
-                            position: 'bottom'
-                        },
-                        plotOptions: {
-                            pie: {
-                                donut: {
-                                    size: '30%'
-                                }
+            url: url,
+            type: 'POST',
+            data: formData,
+            success: function (response) {
+                let optionsDiagramZiyadah  = {
+                    series: [response.persentaseTarget, response.persentaseTidakTarget, response.persentaseKhatam],
+                    labels: ['Target', 'Tidak Target', 'Khatam'],
+                    colors: ['#5B913B','#BE3144', '#FFD65A'],
+                    chart: {
+                        type: 'donut',
+                        width: '100%',
+                        height:'350px'
+                    },
+                    legend: {
+                        position: 'bottom'
+                    },
+                    plotOptions: {
+                        pie: {
+                            donut: {
+                                size: '30%'
                             }
                         }
                     }
+                }
 
-                    function toRoman(num) {
-                        const romanNumerals = [
-                            { value: 1000, numeral: "M" },
-                            { value: 900, numeral: "CM" },
-                            { value: 500, numeral: "D" },
-                            { value: 400, numeral: "CD" },
-                            { value: 100, numeral: "C" },
-                            { value: 90, numeral: "XC" },
-                            { value: 50, numeral: "L" },
-                            { value: 40, numeral: "XL" },
-                            { value: 10, numeral: "X" },
-                            { value: 9, numeral: "IX" },
-                            { value: 5, numeral: "V" },
-                            { value: 4, numeral: "IV" },
-                            { value: 1, numeral: "I" }
-                        ];
-                        
-                        let result = "";
-                        for (const { value, numeral } of romanNumerals) {
-                            while (num >= value) {
-                                result += numeral;
-                                num -= value;
-                            }
-                        }
-                        return result;
-                    }
-
-                    let classStick = Object.keys(response.dataChart).map(Number).map(toRoman);
-
-                    chartZiyadah = new ApexCharts($('#chart-ziyadah')[0], optionsDiagramZiyadah);
-                    chartZiyadah.render();
-
-                    var dataChart = response.dataChart; // Pastikan dataChart adalah objek yang valid
-                    var categories = Object.keys(dataChart);
-
-                    var barOptions = {
-                        series: [
-                            {
-                                name: "Target",
-                                data: categories.map(key => dataChart[key].totalTarget), // Ambil totalTarget untuk setiap tingkatan
-                            },
-                            {
-                                name: "Tidak Target",
-                                data: categories.map(key => dataChart[key].totalTidakTarget), // Ambil totalTidakTarget untuk setiap tingkatan
-                            },
-                            {
-                                name: "Khatam",
-                                data: categories.map(key => dataChart[key].totalKhatam), // Ambil totalKhatam untuk setiap tingkatan
-                            },
-                        ],
-                        chart: {
-                            type: "bar",
-                            height: 350,
-                        },
-                        plotOptions: {
-                            bar: {
-                            horizontal: false,
-                            columnWidth: "55%",
-                            endingShape: "rounded",
-                            },
-                        },
-                        dataLabels: {
-                            enabled: false,
-                        },
-                        stroke: {
-                            show: true,
-                            width: 2,
-                            colors: ["transparent"],
-                        },
-                        xaxis: {
-                            categories: classStick,
-                        },
-                        yaxis: {
-                            title: {
-                            text: "Santri",
-                            },
-                        },
-                        fill: {
-                            opacity: 1,
-                        },
-                        tooltip: {
-                            y: {
-                            formatter: function(val) {
-                                return val + " Santri";
-                            },
-                            },
-                        },
-                        colors: ['#5B913B','#BE3144', '#FFD65A'],
-                    };
-
-                    chartZiyadahKelas = new ApexCharts($("#bar")[0], barOptions);
-                    chartZiyadahKelas.render();
+                function toRoman(num) {
+                    const romanNumerals = [
+                        { value: 1000, numeral: "M" },
+                        { value: 900, numeral: "CM" },
+                        { value: 500, numeral: "D" },
+                        { value: 400, numeral: "CD" },
+                        { value: 100, numeral: "C" },
+                        { value: 90, numeral: "XC" },
+                        { value: 50, numeral: "L" },
+                        { value: 40, numeral: "XL" },
+                        { value: 10, numeral: "X" },
+                        { value: 9, numeral: "IX" },
+                        { value: 5, numeral: "V" },
+                        { value: 4, numeral: "IV" },
+                        { value: 1, numeral: "I" }
+                    ];
                     
-                    // $('#text-tgl-awal').text(response.txtTglAwal)
-                    // $('#text-emote').text('➡️')
-                    // $('#text-tgl-akhir').text(response.txtTglAkhir)
-                    // $('#tabel-blangko').removeClass('d-none');
-                    hideLoading();
-                },
-                error: function (xhr) {
-                    console.log(xhr.responseText)
-                    hideLoading();
-                },
-            });
+                    let result = "";
+                    for (const { value, numeral } of romanNumerals) {
+                        while (num >= value) {
+                            result += numeral;
+                            num -= value;
+                        }
+                    }
+                    return result;
+                }
+
+                let classStick = Object.keys(response.dataChart).map(Number).map(toRoman);
+
+                chartZiyadah = new ApexCharts($('#chart-ziyadah')[0], optionsDiagramZiyadah);
+                chartZiyadah.render();
+
+                var dataChart = response.dataChart; // Pastikan dataChart adalah objek yang valid
+                var categories = Object.keys(dataChart);
+
+                var barOptions = {
+                    series: [
+                        {
+                            name: "Target",
+                            data: categories.map(key => dataChart[key].totalTarget), // Ambil totalTarget untuk setiap tingkatan
+                        },
+                        {
+                            name: "Tidak Target",
+                            data: categories.map(key => dataChart[key].totalTidakTarget), // Ambil totalTidakTarget untuk setiap tingkatan
+                        },
+                        {
+                            name: "Khatam",
+                            data: categories.map(key => dataChart[key].totalKhatam), // Ambil totalKhatam untuk setiap tingkatan
+                        },
+                    ],
+                    chart: {
+                        type: "bar",
+                        height: 350,
+                    },
+                    plotOptions: {
+                        bar: {
+                        horizontal: false,
+                        columnWidth: "55%",
+                        endingShape: "rounded",
+                        },
+                    },
+                    dataLabels: {
+                        enabled: false,
+                    },
+                    stroke: {
+                        show: true,
+                        width: 2,
+                        colors: ["transparent"],
+                    },
+                    xaxis: {
+                        categories: classStick,
+                    },
+                    yaxis: {
+                        title: {
+                        text: "Santri",
+                        },
+                    },
+                    fill: {
+                        opacity: 1,
+                    },
+                    tooltip: {
+                        y: {
+                        formatter: function(val) {
+                            return val + " Santri";
+                        },
+                        },
+                    },
+                    colors: ['#5B913B','#BE3144', '#FFD65A'],
+                };
+
+                chartZiyadahKelas = new ApexCharts($("#bar")[0], barOptions);
+                chartZiyadahKelas.render();
+                
+                hideLoading();
+            },
+            error: function (xhr) {
+                console.log(xhr.responseText)
+                hideLoading();
+            },
+        });
 
         
-            $('#form-range-waktu').on('submit', function (event) 
-            {
+        $('#form-range-waktu').on('submit', function (event) 
+        {
             showLoading();
 
             event.preventDefault();
@@ -432,7 +428,19 @@
                 type: 'POST',
                 data: formData,
                 success: function (response) {
-                    const table = new simpleDatatables.DataTable("#tabel-blangko", {
+                    let tableElement = document.querySelector("#tabel-blangko");
+
+                    // Cek apakah DataTable sudah ada, lalu hapus dulu
+                    if (tableElement.dataTable) {
+                        tableElement.dataTable.destroy(); // Hapus instance sebelumnya
+                        tableElement.innerHTML = ''; // Kosongkan tabel
+                    }
+
+                    // Kosongkan isi tabel sebelum dirender ulang
+                    $("#tabel-blangko tbody").empty();
+
+                    // Inisialisasi ulang DataTable dengan data dari response
+                    tableElement.dataTable = new simpleDatatables.DataTable(tableElement, {
                         data: {
                             data: Object.values(response.dataBlangko).map(item => [
                                 item.no, 
@@ -463,11 +471,14 @@
                             ])
                         }
                     });
-                    $('#text-tgl-awal').text(response.txtTglAwal)
-                    $('#text-emote').text('➡️')
-                    $('#text-tgl-akhir').text(response.txtTglAkhir)
+
+                    // Perbarui tampilan teks tanggal
+                    $('#text-tgl-awal-blangko').text(response.txtTglAwal);
+                    $('#text-emote-blangko').text('➡️');
+                    $('#text-tgl-akhir-blangko').text(response.txtTglAkhir);
                     $('#tabel-blangko').removeClass('d-none');
-                    
+
+                    // Perbarui input tanggal
                     $("#tanggal-awal-blangko").val(response.formattedAwal);
                     $("#tanggal-akhir-blangko").val(response.formattedAkhir);
                     $('#form-cetak-blangko').removeClass('d-none');
@@ -479,9 +490,10 @@
                     hideLoading();
                 },
             });
-            });
+        });
 
-        $('#form-diagram-ziyadah').on('submit', function (event) {
+        $('#form-diagram-ziyadah').on('submit', function (event) 
+        {
             showLoading();
 
             event.preventDefault();
@@ -611,6 +623,11 @@
 
                     chartZiyadahKelas = new ApexCharts($("#bar")[0], barOptions);
                     chartZiyadahKelas.render();
+
+                    $('#text-tgl-awal-ziyadah').text(response.txtTglAwal);
+                    $('#text-emote-ziyadah').text('➡️');
+                    $('#text-tgl-akhir-ziyadah').text(response.txtTglAkhir);
+                    $('#text-waktu-ziyadah').removeClass("d-none");
 
                     hideLoading();
                 },

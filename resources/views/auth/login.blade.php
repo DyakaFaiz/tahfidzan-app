@@ -52,7 +52,7 @@
                 </div>
             </div>
             <div class="col-lg-7 d-none d-lg-block">
-            <div id="auth-right" style="background-image: url('{{ asset('assets/images/logo/bg-login.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+            <div id="auth-right" style="background-image: /public/assets/images/logo/bg-login.png'); background-size: cover; background-position: center; background-repeat: no-repeat;">
     </div>
 </div>
 
