@@ -29,7 +29,7 @@
             <div class="col-lg-5 col-12">
                 <div id="auth-left">
                     <div class="auth-logo">
-                        <a href="#"><img src="{{ asset('assets/images/logo/logo.png') }}" alt="Logo" class="logo-text">YANBU'UL QUR'AN 1</a>
+                        <a href="#"><img src="{{ asset('assets/images/logo/logo.png') }}" alt="Logo" class="logo-text">YANBU'UL QUR'AN 1 (TEST)</a>
                     </div>
                     <h1 class="auth-title">Log in.</h1>
 
