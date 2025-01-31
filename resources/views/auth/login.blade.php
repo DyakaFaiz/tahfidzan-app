@@ -13,29 +13,23 @@
     @include('layout.css-header')
 <style>
     .auth-logo {
-    display: flex;
-    align-items: center; /* Vertikal center */
-}
-
-.auth-logo img {
-    max-height: 40px;  /* Ukuran logo */
-    margin-right: 10px; /* Memberi jarak antara logo dan teks */
-}
+        padding-top: 12px;
+        padding-bottom: 12px;
+        display: flex;
+        align-items: center; /* Vertikal center */
+        justify-content: center; /* Horizontal center */
+        text-align: center; /* Menyelaraskan teks di tengah */
+    }
 </style>
 </head>
 
 <body>
     <div id="auth">
-
         <div class="row h-100">
             <div class="col-lg-5 col-12">
                 <div id="auth-left">
-                <div class="auth-logo">
-    <a href="#"><img src="logo.png" alt="Logo" style="max-height: 40px; margin-right: 10px;">
-</a>
-    <p>YANBU'UL QUR'AN 1</p>
-
-   
+                    <div class="auth-logo">
+                        <a href="#"><img src="assets/images/logo/logo.png" alt="Logo" class="logo-text">YANBU'UL QUR'AN 1</a>
                     </div>
                     <h1 class="auth-title">Log in.</h1>
 
@@ -58,12 +52,7 @@
                 </div>
             </div>
             <div class="col-lg-7 d-none d-lg-block">
-            <div id="auth-right" style="background-image: url('{{ asset('3.png') }}'); 
-               background-size: cover; 
-               background-position: center; 
-               background-repeat: no-repeat;">
-                           >
-
+            <div id="auth-right" style="background-image: url('{{ asset('assets/images/logo/bg-login.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
     </div>
 </div>
 
