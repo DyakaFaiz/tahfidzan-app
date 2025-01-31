@@ -6,10 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title }} - YANBU'UL QUR'AN 1</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url('') }}/assets/css/bootstrap.css">
-    <link rel="stylesheet" href="{{ url('') }}/assets/vendors/bootstrap-icons/bootstrap-icons.css">
-    <link rel="stylesheet" href="{{ url('') }}/assets/css/app.css">
-    <link rel="stylesheet" href="{{ url('') }}/assets/css/pages/auth.css">
+    <link rel="stylesheet" href="{{ url('') }}/public/assets/css/bootstrap.css">
+    <link rel="stylesheet" href="{{ url('') }}/public/assets/vendors/bootstrap-icons/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url('') }}/public/assets/css/app.css">
+    <link rel="stylesheet" href="{{ url('') }}/public/assets/css/pages/auth.css">
     @include('layout.css-header')
 <style>
     .auth-logo {
@@ -29,7 +29,7 @@
             <div class="col-lg-5 col-12">
                 <div id="auth-left">
                     <div class="auth-logo">
-                        <a href="#"><img src="assets/images/logo/logo.png" alt="Logo" class="logo-text">YANBU'UL QUR'AN 1</a>
+                        <a href="#"><img src="/public/assets/images/logo/logo.png" alt="Logo" class="logo-text">YANBU'UL QUR'AN 1</a>
                     </div>
                     <h1 class="auth-title">Log in.</h1>
 
