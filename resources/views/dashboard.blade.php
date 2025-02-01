@@ -27,18 +27,6 @@
         z-index: 2;
     }
 
-    /* .sticky-row {
-        top: 0;
-    }
-
-    .sticky-2 {
-        top: 64px;
-    }
-
-    .sticky-3 {
-        top: 130px;
-    } */
-
     input[type="date"]:invalid {
         background-color: #f0f0f0;
         color: #aaa;
@@ -66,16 +54,16 @@
                     <div class="col-md-8 col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4>Ziyadah Chart</h4>
+                                <h4>Graph Ziyadah</h4>
                             </div>
                             <div class="card-body">
-                                <div id="bar"></div>
+                                <div id="graph-ziyadah"></div>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-4 col-12">
                         <div class="px-2">
-                            <h4>Diagram Ziyadah Hafalan Santri</h4>
+                            <h4>Chart Ziyadah Hafalan Santri</h4>
                         </div>
                         <div class="card-body">
                             <form id="form-diagram-ziyadah">
@@ -97,6 +85,26 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="row">
+                    <div class="col-md-8 col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Graph Deresan</h4>
+                            </div>
+                            <div class="card-body">
+                                <div id="graph-deresan"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-12">
+                        <div class="card-body">
+                            <div id="chart-deresan"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
 
                 {{-- Blangko --}}
                 <form id="form-range-waktu">
@@ -191,13 +199,13 @@
                                 {{-- Simple DataTable --}}
                             </tbody>
                         </table>
-                        <form action="{{ route('dashboard.export-blangko') }}" id="form-cetak-blangko" class="d-none" method="POST">
-                            @csrf
-                            <input type="hidden" name="tglAwalBlangko" id="tanggal-awal-blangko">
-                            <input type="hidden" name="tglAkhirBlangko" id="tanggal-akhir-blangko">
-                            <button type="submit" id="btn-cetak-blangko" class="btn icon icon-left btn-success"><i data-feather="check-circle"></i> Cetak</button>
-                        </form>
                     </div>
+                    <form action="{{ route('dashboard.export-blangko') }}" id="form-cetak-blangko" class="d-none" method="POST">
+                        @csrf
+                        <input type="hidden" name="tglAwalBlangko" id="tanggal-awal-blangko">
+                        <input type="hidden" name="tglAkhirBlangko" id="tanggal-akhir-blangko">
+                        <button type="submit" id="btn-cetak-blangko" class="btn btn-sm icon icon-left btn-success"><i class="bi bi-file-earmark-ruled-fill"></i> Cetak Blangko</button>
+                    </form>
                 </div>
                 {{-- /Blangko --}}
 
@@ -279,7 +287,37 @@
 <script>
     $(document).ready(function () {
         let chartZiyadah;
-        let chartZiyadahKelas;
+        let graphZiyadah;
+        let chartDeresan;
+        let graphDeresan;
+
+        function toRoman(num) 
+        {
+            const romanNumerals = [
+                { value: 1000, numeral: "M" },
+                { value: 900, numeral: "CM" },
+                { value: 500, numeral: "D" },
+                { value: 400, numeral: "CD" },
+                { value: 100, numeral: "C" },
+                { value: 90, numeral: "XC" },
+                { value: 50, numeral: "L" },
+                { value: 40, numeral: "XL" },
+                { value: 10, numeral: "X" },
+                { value: 9, numeral: "IX" },
+                { value: 5, numeral: "V" },
+                { value: 4, numeral: "IV" },
+                { value: 1, numeral: "I" }
+            ];
+            
+            let result = "";
+            for (const { value, numeral } of romanNumerals) {
+                while (num >= value) {
+                    result += numeral;
+                    num -= value;
+                }
+            }
+            return result;
+        }
 
         let formData = null;
         formData += '&_token=' + $('meta[name="csrf-token"]').attr('content');
@@ -289,8 +327,10 @@
             type: 'POST',
             data: formData,
             success: function (response) {
+                // Ziyadah
+
                 let optionsDiagramZiyadah  = {
-                    series: [response.persentaseTarget, response.persentaseTidakTarget, response.persentaseKhatam],
+                    series: [response.persentaseTargetZiyadah, response.persentaseTidakTargetZiyadah, response.persentaseKhatamZiyadah],
                     labels: ['Target', 'Tidak Target', 'Khatam'],
                     colors: ['#5B913B','#BE3144', '#FFD65A'],
                     chart: {
@@ -309,55 +349,28 @@
                         }
                     }
                 }
-
-                function toRoman(num) {
-                    const romanNumerals = [
-                        { value: 1000, numeral: "M" },
-                        { value: 900, numeral: "CM" },
-                        { value: 500, numeral: "D" },
-                        { value: 400, numeral: "CD" },
-                        { value: 100, numeral: "C" },
-                        { value: 90, numeral: "XC" },
-                        { value: 50, numeral: "L" },
-                        { value: 40, numeral: "XL" },
-                        { value: 10, numeral: "X" },
-                        { value: 9, numeral: "IX" },
-                        { value: 5, numeral: "V" },
-                        { value: 4, numeral: "IV" },
-                        { value: 1, numeral: "I" }
-                    ];
-                    
-                    let result = "";
-                    for (const { value, numeral } of romanNumerals) {
-                        while (num >= value) {
-                            result += numeral;
-                            num -= value;
-                        }
-                    }
-                    return result;
-                }
-
-                let classStick = Object.keys(response.dataChart).map(Number).map(toRoman);
-
+                
                 chartZiyadah = new ApexCharts($('#chart-ziyadah')[0], optionsDiagramZiyadah);
                 chartZiyadah.render();
 
-                var dataChart = response.dataChart; // Pastikan dataChart adalah objek yang valid
-                var categories = Object.keys(dataChart);
+                let graphContentZiyadah = Object.keys(response.dataGraphZiyadah).map(Number).map(toRoman);
 
-                var barOptions = {
+                var dataGraphZiyadah = response.dataGraphZiyadah; // Pastikan dataChart adalah objek yang valid
+                var categories = Object.keys(dataGraphZiyadah);
+
+                var graphOptionsZiyadah = {
                     series: [
                         {
                             name: "Target",
-                            data: categories.map(key => dataChart[key].totalTarget), // Ambil totalTarget untuk setiap tingkatan
+                            data: categories.map(key => dataGraphZiyadah[key].totalTarget), // Ambil totalTarget untuk setiap tingkatan
                         },
                         {
                             name: "Tidak Target",
-                            data: categories.map(key => dataChart[key].totalTidakTarget), // Ambil totalTidakTarget untuk setiap tingkatan
+                            data: categories.map(key => dataGraphZiyadah[key].totalTidakTarget), // Ambil totalTidakTarget untuk setiap tingkatan
                         },
                         {
                             name: "Khatam",
-                            data: categories.map(key => dataChart[key].totalKhatam), // Ambil totalKhatam untuk setiap tingkatan
+                            data: categories.map(key => dataGraphZiyadah[key].totalKhatam), // Ambil totalKhatam untuk setiap tingkatan
                         },
                     ],
                     chart: {
@@ -380,7 +393,7 @@
                         colors: ["transparent"],
                     },
                     xaxis: {
-                        categories: classStick,
+                        categories: graphContentZiyadah,
                     },
                     yaxis: {
                         title: {
@@ -400,9 +413,98 @@
                     colors: ['#5B913B','#BE3144', '#FFD65A'],
                 };
 
-                chartZiyadahKelas = new ApexCharts($("#bar")[0], barOptions);
-                chartZiyadahKelas.render();
+                graphZiyadah = new ApexCharts($("#graph-ziyadah")[0], graphOptionsZiyadah);
+                graphZiyadah.render();
+
+                // Deresan
+
+                let optionsDiagramDeresan  = {
+                    series: [response.persentaseTargetDeresan, response.persentaseTidakTargetDeresan, response.persentaseTidakTertulisDeresan],
+                    labels: ['Target', 'Tidak Target', 'Belum Terisi'],
+                    colors: ['#5B913B','#BE3144', '#FFD65A'],
+                    chart: {
+                        type: 'donut',
+                        width: '100%',
+                        height:'350px'
+                    },
+                    legend: {
+                        position: 'bottom'
+                    },
+                    plotOptions: {
+                        pie: {
+                            donut: {
+                                size: '30%'
+                            }
+                        }
+                    }
+                }
                 
+                chartDeresan = new ApexCharts($('#chart-deresan')[0], optionsDiagramDeresan);
+                chartDeresan.render();
+
+                let graphContentDeresan = Object.keys(response.dataGraphDeresan).map(Number).map(toRoman);
+
+                var dataGraphDeresan = response.dataGraphDeresan;
+                var categoriesDeresan = Object.keys(dataGraphDeresan);
+
+                var graphOptionsDeresan = {
+                    series: [
+                        {
+                            name: "Target",
+                            data: categoriesDeresan.map(key => dataGraphDeresan[key].totalTarget),
+                        },
+                        {
+                            name: "Tidak Target",
+                            data: categoriesDeresan.map(key => dataGraphDeresan[key].totalTidakTarget),
+                        },
+                        {
+                            name: "Belum Terisi",
+                            data: categoriesDeresan.map(key => dataGraphDeresan[key].totalTidakTertulis),
+                        },
+                    ],
+                    chart: {
+                        type: "bar",
+                        height: 350,
+                    },
+                    plotOptions: {
+                        bar: {
+                        horizontal: false,
+                        columnWidth: "55%",
+                        endingShape: "rounded",
+                        },
+                    },
+                    dataLabels: {
+                        enabled: false,
+                    },
+                    stroke: {
+                        show: true,
+                        width: 2,
+                        colors: ["transparent"],
+                    },
+                    xaxis: {
+                        categories: graphContentDeresan,
+                    },
+                    yaxis: {
+                        title: {
+                        text: "Santri",
+                        },
+                    },
+                    fill: {
+                        opacity: 1,
+                    },
+                    tooltip: {
+                        y: {
+                        formatter: function(val) {
+                            return val + " Santri";
+                        },
+                        },
+                    },
+                    colors: ['#5B913B','#BE3144', '#FFD65A'],
+                };
+
+                graphDeresan = new ApexCharts($("#graph-deresan")[0], graphOptionsDeresan);
+                graphDeresan.render();
+
                 hideLoading();
             },
             error: function (xhr) {
@@ -411,7 +513,6 @@
             },
         });
 
-        
         $('#form-range-waktu').on('submit', function (event) 
         {
             showLoading();
@@ -508,12 +609,16 @@
                 data: formData,
                 success: function (response) {
                     chartZiyadah.destroy();
-                    chartZiyadahKelas.destroy();
+                    graphZiyadah.destroy();
+                    chartDeresan.destroy();
+                    graphDeresan.destroy();
+
+                    // Ziyadah
 
                     let optionsDiagramZiyadah  = {
-                        series: [response.persentaseTarget, response.persentaseTidakTarget, response.persentaseKhatam],
+                        series: [response.persentaseTargetZiyadah, response.persentaseTidakTargetZiyadah, response.persentaseKhatamZiyadah],
                         labels: ['Target', 'Tidak Target', 'Khatam'],
-                        colors: ['#A9C46C','#BE3144', '#5D8736'],
+                        colors: ['#5B913B','#BE3144', '#FFD65A'],
                         chart: {
                             type: 'donut',
                             width: '100%',
@@ -530,55 +635,28 @@
                             }
                         }
                     }
-
+                    
                     chartZiyadah = new ApexCharts($('#chart-ziyadah')[0], optionsDiagramZiyadah);
                     chartZiyadah.render();
 
-                    var dataChart = response.dataChart; // Pastikan dataChart adalah objek yang valid
-                    var categories = Object.keys(dataChart);
+                    let graphContentZiyadah = Object.keys(response.dataGraphZiyadah).map(Number).map(toRoman);
 
-                    function toRoman(num) {
-                        const romanNumerals = [
-                            { value: 1000, numeral: "M" },
-                            { value: 900, numeral: "CM" },
-                            { value: 500, numeral: "D" },
-                            { value: 400, numeral: "CD" },
-                            { value: 100, numeral: "C" },
-                            { value: 90, numeral: "XC" },
-                            { value: 50, numeral: "L" },
-                            { value: 40, numeral: "XL" },
-                            { value: 10, numeral: "X" },
-                            { value: 9, numeral: "IX" },
-                            { value: 5, numeral: "V" },
-                            { value: 4, numeral: "IV" },
-                            { value: 1, numeral: "I" }
-                        ];
-                        
-                        let result = "";
-                        for (const { value, numeral } of romanNumerals) {
-                            while (num >= value) {
-                                result += numeral;
-                                num -= value;
-                            }
-                        }
-                        return result;
-                    }
+                    var dataGraphZiyadah = response.dataGraphZiyadah; // Pastikan dataChart adalah objek yang valid
+                    var categories = Object.keys(dataGraphZiyadah);
 
-                    let classStick = Object.keys(response.dataChart).map(Number).map(toRoman);
-
-                    var barOptions = {
+                    var graphOptionsZiyadah = {
                         series: [
                             {
                                 name: "Target",
-                                data: categories.map(key => dataChart[key].totalTarget), // Ambil totalTarget untuk setiap tingkatan
+                                data: categories.map(key => dataGraphZiyadah[key].totalTarget), // Ambil totalTarget untuk setiap tingkatan
                             },
                             {
                                 name: "Tidak Target",
-                                data: categories.map(key => dataChart[key].totalTidakTarget), // Ambil totalTidakTarget untuk setiap tingkatan
+                                data: categories.map(key => dataGraphZiyadah[key].totalTidakTarget), // Ambil totalTidakTarget untuk setiap tingkatan
                             },
                             {
                                 name: "Khatam",
-                                data: categories.map(key => dataChart[key].totalKhatam), // Ambil totalKhatam untuk setiap tingkatan
+                                data: categories.map(key => dataGraphZiyadah[key].totalKhatam), // Ambil totalKhatam untuk setiap tingkatan
                             },
                         ],
                         chart: {
@@ -601,7 +679,7 @@
                             colors: ["transparent"],
                         },
                         xaxis: {
-                            categories: classStick,
+                            categories: graphContentZiyadah,
                         },
                         yaxis: {
                             title: {
@@ -621,8 +699,97 @@
                         colors: ['#5B913B','#BE3144', '#FFD65A'],
                     };
 
-                    chartZiyadahKelas = new ApexCharts($("#bar")[0], barOptions);
-                    chartZiyadahKelas.render();
+                    graphZiyadah = new ApexCharts($("#graph-ziyadah")[0], graphOptionsZiyadah);
+                    graphZiyadah.render();
+
+                    // Deresan
+
+                    let optionsDiagramDeresan  = {
+                        series: [response.persentaseTargetDeresan, response.persentaseTidakTargetDeresan, response.persentaseTidakTertulisDeresan],
+                        labels: ['Target', 'Tidak Target', 'Belum Terisi'],
+                        colors: ['#5B913B','#BE3144', '#FFD65A'],
+                        chart: {
+                            type: 'donut',
+                            width: '100%',
+                            height:'350px'
+                        },
+                        legend: {
+                            position: 'bottom'
+                        },
+                        plotOptions: {
+                            pie: {
+                                donut: {
+                                    size: '30%'
+                                }
+                            }
+                        }
+                    }
+                    
+                    chartDeresan = new ApexCharts($('#chart-deresan')[0], optionsDiagramDeresan);
+                    chartDeresan.render();
+
+                    let graphContentDeresan = Object.keys(response.dataGraphDeresan).map(Number).map(toRoman);
+
+                    var dataGraphDeresan = response.dataGraphDeresan;
+                    var categories = Object.keys(dataGraphDeresan);
+
+                    var graphOptionsDeresan = {
+                        series: [
+                            {
+                                name: "Target",
+                                data: categories.map(key => dataGraphDeresan[key].totalTarget),
+                            },
+                            {
+                                name: "Tidak Target",
+                                data: categories.map(key => dataGraphDeresan[key].totalTidakTarget),
+                            },
+                            {
+                                name: "Belum Terisi",
+                                data: categories.map(key => dataGraphDeresan[key].totalTidakTertulis),
+                            },
+                        ],
+                        chart: {
+                            type: "bar",
+                            height: 350,
+                        },
+                        plotOptions: {
+                            bar: {
+                            horizontal: false,
+                            columnWidth: "55%",
+                            endingShape: "rounded",
+                            },
+                        },
+                        dataLabels: {
+                            enabled: false,
+                        },
+                        stroke: {
+                            show: true,
+                            width: 2,
+                            colors: ["transparent"],
+                        },
+                        xaxis: {
+                            categories: graphContentDeresan,
+                        },
+                        yaxis: {
+                            title: {
+                            text: "Santri",
+                            },
+                        },
+                        fill: {
+                            opacity: 1,
+                        },
+                        tooltip: {
+                            y: {
+                            formatter: function(val) {
+                                return val + " Santri";
+                            },
+                            },
+                        },
+                        colors: ['#5B913B','#BE3144', '#FFD65A'],
+                    };
+
+                    graphDeresan = new ApexCharts($("#graph-deresan")[0], graphOptionsDeresan);
+                    graphDeresan.render();
 
                     $('#text-tgl-awal-ziyadah').text(response.txtTglAwal);
                     $('#text-emote-ziyadah').text('➡️');
