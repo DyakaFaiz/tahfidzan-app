@@ -282,7 +282,7 @@ class DashboardController extends Controller
                     DB::raw('COUNT(DISTINCT deresan_a.id_santri) AS totalSantri'),
                     DB::raw('SUM(CASE WHEN deresan_a.jumlah >= master_target.jumlah THEN 1 ELSE 0 END) AS totalTarget'),
                     DB::raw('SUM(CASE WHEN deresan_a.jumlah >= master_target.jumlah AND deresan_a.status = 2 THEN 1 ELSE 0 END) AS totalKhatam'),
-                    DB::raw('SUM(CASE WHEN deresan_a.jumlah < master_target.jumlah THEN 1 ELSE 0 END) AS totalTidakTertulis')
+                    DB::raw('SUM(CASE WHEN deresan_a.jumlah IS NULL THEN 1 ELSE 0 END) AS totalTidakTertulis')
                 )
                 ->leftJoin('santri', 'santri.id', '=', 'deresan_a.id_santri')
                 ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
@@ -304,7 +304,7 @@ class DashboardController extends Controller
                     DB::raw('COUNT(DISTINCT murojaah.id_santri) AS totalSantri'),
                     DB::raw('SUM(CASE WHEN murojaah.jumlah >= master_target.jumlah THEN 1 ELSE 0 END) AS totalTarget'),
                     DB::raw('SUM(CASE WHEN murojaah.jumlah >= master_target.jumlah AND murojaah.status = 2 THEN 1 ELSE 0 END) AS totalKhatam'),
-                    DB::raw('SUM(CASE WHEN murojaah.jumlah < master_target.jumlah THEN 1 ELSE 0 END) AS totalTidakTertulis')
+                    DB::raw('SUM(CASE WHEN murojaah.jumlah IS NULL THEN 1 ELSE 0 END) AS totalTidakTertulis')
                 )
                 ->whereIn('id_waktu', $idWaktus)
                 ->leftJoin('santri', 'santri.id', '=', 'murojaah.id_santri')
@@ -500,7 +500,7 @@ class DashboardController extends Controller
                     DB::raw('COUNT(DISTINCT deresan_a.id_santri) AS totalSantri'),
                     DB::raw('SUM(CASE WHEN deresan_a.jumlah >= master_target.jumlah THEN 1 ELSE 0 END) AS totalTarget'),
                     DB::raw('SUM(CASE WHEN deresan_a.jumlah >= master_target.jumlah AND deresan_a.status = 2 THEN 1 ELSE 0 END) AS totalKhatam'),
-                    DB::raw('SUM(CASE WHEN deresan_a.jumlah < master_target.jumlah THEN 1 ELSE 0 END) AS totalTidakTertulis')
+                    DB::raw('SUM(CASE WHEN deresan_a.jumlah IS NULL THEN 1 ELSE 0 END) AS totalTidakTertulis')
                 )
                 ->leftJoin('santri', 'santri.id', '=', 'deresan_a.id_santri')
                 ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
@@ -521,7 +521,7 @@ class DashboardController extends Controller
                     DB::raw('COUNT(DISTINCT murojaah.id_santri) AS totalSantri'),
                     DB::raw('SUM(CASE WHEN murojaah.jumlah >= master_target.jumlah THEN 1 ELSE 0 END) AS totalTarget'),
                     DB::raw('SUM(CASE WHEN murojaah.jumlah >= master_target.jumlah AND murojaah.status = 2 THEN 1 ELSE 0 END) AS totalKhatam'),
-                    DB::raw('SUM(CASE WHEN murojaah.jumlah < master_target.jumlah THEN 1 ELSE 0 END) AS totalTidakTertulis')
+                    DB::raw('SUM(CASE WHEN murojaah.jumlah IS NULL THEN 1 ELSE 0 END) AS totalTidakTertulis')
                 )
                 ->leftJoin('santri', 'santri.id', '=', 'murojaah.id_santri')
                 ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
