@@ -358,7 +358,8 @@
                 var dataGraphZiyadah = response.dataGraphZiyadah; // Pastikan dataChart adalah objek yang valid
                 var categories = Object.keys(dataGraphZiyadah);
 
-                var graphOptionsZiyadah = {
+                var graphOptionsZiyadah = 
+                {
                     series: [
                         {
                             name: "Target",

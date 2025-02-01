@@ -45,62 +45,6 @@ class DashboardController extends Controller
             'url'   => 'dashboard'
         ];
 
-        // Graph Deresan
-        $deresanAGraph = DeresanA::select(
-                'master_tingkatan.tingkatan',
-                DB::raw('COUNT(DISTINCT deresan_a.id_santri) AS totalSantri'),
-                DB::raw('SUM(CASE WHEN deresan_a.jumlah >= master_target.jumlah THEN 1 ELSE 0 END) AS totalTarget'),
-                DB::raw('SUM(CASE WHEN deresan_a.jumlah >= master_target.jumlah AND deresan_a.status = 2 THEN 1 ELSE 0 END) AS totalKhatam'),
-                DB::raw('SUM(CASE WHEN deresan_a.jumlah < master_target.jumlah THEN 1 ELSE 0 END) AS totalTidakTertulis')
-            )
-            ->leftJoin('santri', 'santri.id', '=', 'deresan_a.id_santri')
-            ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
-            ->leftJoin('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
-            ->leftJoin('master_target', DB::raw('FIND_IN_SET(master_tingkatan.id, master_target.id_tingkatan)'), '>', DB::raw('0'))
-            // ->when($idRole == 2, function ($query) use ($idUser) {
-            //     return $query->where('deresan_a.id_ustad', $idUser);
-            // })
-            ->whereNotNull('santri.id_kelas')
-            ->where('master_target.nama', 'deresan')
-            ->where('santri.id_kelas', '!=', 'boyong')
-            ->where('santri.id_kelas', '!=', 25)
-            ->groupBy('master_tingkatan.tingkatan')
-            ->get();
-
-        $murojaahGraph = Murojaah::select(
-                'master_tingkatan.tingkatan',
-                DB::raw('COUNT(DISTINCT murojaah.id_santri) AS totalSantri'),
-                DB::raw('SUM(CASE WHEN murojaah.jumlah >= master_target.jumlah THEN 1 ELSE 0 END) AS totalTarget'),
-                DB::raw('SUM(CASE WHEN murojaah.jumlah >= master_target.jumlah AND murojaah.status = 2 THEN 1 ELSE 0 END) AS totalKhatam'),
-                DB::raw('SUM(CASE WHEN murojaah.jumlah < master_target.jumlah THEN 1 ELSE 0 END) AS totalTidakTertulis')
-            )
-            ->leftJoin('santri', 'santri.id', '=', 'murojaah.id_santri')
-            ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
-            ->leftJoin('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
-            ->leftJoin('master_target', DB::raw('FIND_IN_SET(master_tingkatan.id, master_target.id_tingkatan)'), '>', DB::raw('0'))
-            // ->when($idRole == 2, function ($query) use ($idUser) {
-            //     return $query->where('murojaah.id_ustad', $idUser);
-            // })
-            ->whereNotNull('santri.id_kelas')
-            ->where('master_target.nama', 'deresan')
-            ->where('santri.id_kelas', '!=', 'boyong')
-            ->where('santri.id_kelas', '!=', 25)
-            ->groupBy('master_tingkatan.tingkatan')
-            ->get();
-
-            $deresanGraph = $deresanAGraph->merge($murojaahGraph)
-                ->groupBy('tingkatan') // Mengelompokkan berdasarkan tingkatan
-                ->mapWithKeys(function ($items, $key) {
-                    return [
-                        $key => [
-                            'totalSantri' => $items->sum('totalSantri'),
-                            'totalTarget' => $items->sum('totalTarget'),
-                            'totalKhatam' => $items->sum('totalKhatam'),
-                            'totalTidakTertulis' => $items->sum('totalTidakTertulis'),
-                        ]
-                    ];
-                });
-
         return view('dashboard', $data);
     }
 
@@ -277,59 +221,68 @@ class DashboardController extends Controller
 
 
             // Graph Deresan
-            $deresanAGraph = DeresanA::select(
-                    'master_tingkatan.tingkatan',
-                    DB::raw('COUNT(DISTINCT deresan_a.id_santri) AS totalSantri'),
-                    DB::raw('SUM(CASE WHEN deresan_a.jumlah >= master_target.jumlah THEN 1 ELSE 0 END) AS totalTarget'),
-                    DB::raw('SUM(CASE WHEN deresan_a.jumlah >= master_target.jumlah AND deresan_a.status = 2 THEN 1 ELSE 0 END) AS totalKhatam'),
-                    DB::raw('SUM(CASE WHEN deresan_a.jumlah IS NULL THEN 1 ELSE 0 END) AS totalTidakTertulis')
-                )
-                ->leftJoin('santri', 'santri.id', '=', 'deresan_a.id_santri')
-                ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
-                ->leftJoin('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
-                ->leftJoin('master_target', DB::raw('FIND_IN_SET(master_tingkatan.id, master_target.id_tingkatan)'), '>', DB::raw('0'))
-                ->when($idRole == 2, function ($query) use ($idUser) {
-                    return $query->where('deresan_a.id_ustad', $idUser);
-                })
-                ->whereIn('id_waktu', $idWaktus)
-                ->whereNotNull('santri.id_kelas')
-                ->where('master_target.nama', 'deresan')
-                ->where('santri.id_kelas', '!=', 'boyong')
-                ->where('santri.id_kelas', '!=', 25)
-                ->groupBy('master_tingkatan.tingkatan')
-                ->get();
-
-            $murojaahGraph = Murojaah::select(
-                    'master_tingkatan.tingkatan',
-                    DB::raw('COUNT(DISTINCT murojaah.id_santri) AS totalSantri'),
-                    DB::raw('SUM(CASE WHEN murojaah.jumlah >= master_target.jumlah THEN 1 ELSE 0 END) AS totalTarget'),
-                    DB::raw('SUM(CASE WHEN murojaah.jumlah >= master_target.jumlah AND murojaah.status = 2 THEN 1 ELSE 0 END) AS totalKhatam'),
-                    DB::raw('SUM(CASE WHEN murojaah.jumlah IS NULL THEN 1 ELSE 0 END) AS totalTidakTertulis')
-                )
-                ->whereIn('id_waktu', $idWaktus)
-                ->leftJoin('santri', 'santri.id', '=', 'murojaah.id_santri')
-                ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
-                ->leftJoin('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
-                ->leftJoin('master_target', DB::raw('FIND_IN_SET(master_tingkatan.id, master_target.id_tingkatan)'), '>', DB::raw('0'))
-                ->when($idRole == 2, function ($query) use ($idUser) {
-                    return $query->where('murojaah.id_ustad', $idUser);
-                })
-                ->whereNotNull('santri.id_kelas')
-                ->where('master_target.nama', 'deresan')
-                ->where('santri.id_kelas', '!=', 'boyong')
-                ->where('santri.id_kelas', '!=', 25)
-                ->groupBy('master_tingkatan.tingkatan')
-                ->get();
-
-            $deresanGraph = $deresanAGraph->merge($murojaahGraph);
+            $deresanGraph = DB::query()->fromSub(function ($query) use ($idWaktus, $idUser, $idRole) {
+                $query->select(
+                        'master_tingkatan.tingkatan',
+                        DB::raw('COUNT(DISTINCT deresan_a.id_santri) AS totalSantri'),
+                        DB::raw('COUNT(DISTINCT CASE WHEN deresan_a.jumlah >= master_target.jumlah THEN deresan_a.id_santri END) AS totalTarget'),
+                        DB::raw('COUNT(DISTINCT CASE WHEN deresan_a.jumlah IS NULL THEN deresan_a.id_santri END) AS totalTidakTertulis'),
+                        DB::raw('COUNT(DISTINCT CASE WHEN deresan_a.jumlah < master_target.jumlah THEN deresan_a.id_santri END) AS totalTidakTarget')
+                    )
+                    ->from('deresan_a')
+                    ->leftJoin('santri', 'santri.id', '=', 'deresan_a.id_santri')
+                    ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
+                    ->leftJoin('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
+                    ->leftJoin('master_target', DB::raw('FIND_IN_SET(master_tingkatan.id, master_target.id_tingkatan)'), '>', DB::raw('0'))
+                    ->whereIn('id_waktu', $idWaktus)
+                    ->when($idRole == 2, function ($query) use ($idUser) {
+                        return $query->where('id_ustad', $idUser);
+                    })
+                    ->whereNotNull('santri.id_kelas')
+                    ->where('master_target.nama', 'deresan')
+                    ->whereNotIn('santri.id_kelas', ['boyong', 25])
+                    ->groupBy('master_tingkatan.tingkatan')
             
+                    ->unionAll(
+                        DB::table('murojaah')
+                            ->select(
+                                'master_tingkatan.tingkatan',
+                                DB::raw('COUNT(DISTINCT murojaah.id_santri) AS totalSantri'),
+                                DB::raw('COUNT(DISTINCT CASE WHEN murojaah.jumlah >= master_target.jumlah THEN murojaah.id_santri END) AS totalTarget'),
+                                DB::raw('COUNT(DISTINCT CASE WHEN murojaah.jumlah IS NULL THEN murojaah.id_santri END) AS totalTidakTertulis'),
+                                DB::raw('COUNT(DISTINCT CASE WHEN murojaah.jumlah < master_target.jumlah THEN murojaah.id_santri END) AS totalTidakTarget')
+                            )
+                            ->leftJoin('santri', 'santri.id', '=', 'murojaah.id_santri')
+                            ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
+                            ->leftJoin('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
+                            ->leftJoin('master_target', DB::raw('FIND_IN_SET(master_tingkatan.id, master_target.id_tingkatan)'), '>', DB::raw('0'))
+                            ->whereIn('id_waktu', $idWaktus)
+                            ->when($idRole == 2, function ($query) use ($idUser) {
+                                return $query->where('id_ustad', $idUser);
+                            })
+                            ->whereNotNull('santri.id_kelas')
+                            ->where('master_target.nama', 'deresan')
+                            ->whereNotIn('santri.id_kelas', ['boyong', 25])
+                            ->groupBy('master_tingkatan.tingkatan')
+                    );
+            }, 'combined_data')
+            ->groupBy('tingkatan')
+            ->select(
+                'tingkatan',
+                DB::raw('SUM(totalSantri) AS totalSantri'),
+                DB::raw('SUM(totalTarget) AS totalTarget'),
+                DB::raw('SUM(totalTidakTertulis) AS totalTidakTertulis'),
+                DB::raw('SUM(totalTidakTarget) AS totalTidakTarget')
+            )
+            ->get();
+    
             $dataDiagramGraphDeresan = $deresanGraph->mapWithKeys(function ($item) {
                 return [
                     $item->tingkatan => [
-                        'totalSantri' => $item->totalSantri,
+                        'totalSantri' => $item->totalTarget + $item->totalTidakTertulis + $item->totalTidakTarget,
                         'totalTarget' => $item->totalTarget,
-                        'totalKhatam' => $item->totalKhatam,
                         'totalTidakTertulis' => $item->totalTidakTertulis,
+                        'totalTidakTarget' => $item->totalTidakTarget,
                     ]
                 ];
             });
@@ -495,60 +448,63 @@ class DashboardController extends Controller
 
 
             // Graph Deresan
-            $deresanAGraph = DeresanA::select(
-                    'master_tingkatan.tingkatan',
-                    DB::raw('COUNT(DISTINCT deresan_a.id_santri) AS totalSantri'),
-                    DB::raw('SUM(CASE WHEN deresan_a.jumlah >= master_target.jumlah THEN 1 ELSE 0 END) AS totalTarget'),
-                    DB::raw('SUM(CASE WHEN deresan_a.jumlah >= master_target.jumlah AND deresan_a.status = 2 THEN 1 ELSE 0 END) AS totalKhatam'),
-                    DB::raw('SUM(CASE WHEN deresan_a.jumlah IS NULL THEN 1 ELSE 0 END) AS totalTidakTertulis')
-                )
-                ->leftJoin('santri', 'santri.id', '=', 'deresan_a.id_santri')
-                ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
-                ->leftJoin('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
-                ->leftJoin('master_target', DB::raw('FIND_IN_SET(master_tingkatan.id, master_target.id_tingkatan)'), '>', DB::raw('0'))
-                ->when($idRole == 2, function ($query) use ($idUser) {
-                    return $query->where('deresan_a.id_ustad', $idUser);
-                })
-                ->whereNotNull('santri.id_kelas')
-                ->where('master_target.nama', 'deresan')
-                ->where('santri.id_kelas', '!=', 'boyong')
-                ->where('santri.id_kelas', '!=', 25)
-                ->groupBy('master_tingkatan.tingkatan')
-                ->get();
-
-            $murojaahGraph = Murojaah::select(
-                    'master_tingkatan.tingkatan',
-                    DB::raw('COUNT(DISTINCT murojaah.id_santri) AS totalSantri'),
-                    DB::raw('SUM(CASE WHEN murojaah.jumlah >= master_target.jumlah THEN 1 ELSE 0 END) AS totalTarget'),
-                    DB::raw('SUM(CASE WHEN murojaah.jumlah >= master_target.jumlah AND murojaah.status = 2 THEN 1 ELSE 0 END) AS totalKhatam'),
-                    DB::raw('SUM(CASE WHEN murojaah.jumlah IS NULL THEN 1 ELSE 0 END) AS totalTidakTertulis')
-                )
-                ->leftJoin('santri', 'santri.id', '=', 'murojaah.id_santri')
-                ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
-                ->leftJoin('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
-                ->leftJoin('master_target', DB::raw('FIND_IN_SET(master_tingkatan.id, master_target.id_tingkatan)'), '>', DB::raw('0'))
-                ->when($idRole == 2, function ($query) use ($idUser) {
-                    return $query->where('murojaah.id_ustad', $idUser);
-                })
-                ->whereNotNull('santri.id_kelas')
-                ->where('master_target.nama', 'deresan')
-                ->where('santri.id_kelas', '!=', 'boyong')
-                ->where('santri.id_kelas', '!=', 25)
-                ->groupBy('master_tingkatan.tingkatan')
-                ->get();
-
-            $dataDiagramGraphDeresan = $deresanAGraph->merge($murojaahGraph)
-                ->groupBy('tingkatan') // Mengelompokkan berdasarkan tingkatan
-                ->mapWithKeys(function ($items, $key) {
-                    return [
-                        $key => [
-                            'totalSantri' => $items->sum('totalSantri'),
-                            'totalTarget' => $items->sum('totalTarget'),
-                            'totalKhatam' => $items->sum('totalKhatam'),
-                            'totalTidakTertulis' => $items->sum('totalTidakTertulis'),
-                        ]
-                    ];
-                });
+            $deresanGraph = DB::query()->fromSub(function ($query) {
+                $query->select(
+                        'master_tingkatan.tingkatan',
+                        DB::raw('COUNT(DISTINCT deresan_a.id_santri) AS totalSantri'),
+                        DB::raw('COUNT(DISTINCT CASE WHEN deresan_a.jumlah >= master_target.jumlah THEN deresan_a.id_santri END) AS totalTarget'),
+                        DB::raw('COUNT(DISTINCT CASE WHEN deresan_a.jumlah IS NULL THEN deresan_a.id_santri END) AS totalTidakTertulis'),
+                        DB::raw('COUNT(DISTINCT CASE WHEN deresan_a.jumlah < master_target.jumlah THEN deresan_a.id_santri END) AS totalTidakTarget')
+                    )
+                    ->from('deresan_a')
+                    ->leftJoin('santri', 'santri.id', '=', 'deresan_a.id_santri')
+                    ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
+                    ->leftJoin('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
+                    ->leftJoin('master_target', DB::raw('FIND_IN_SET(master_tingkatan.id, master_target.id_tingkatan)'), '>', DB::raw('0'))
+                    ->whereNotNull('santri.id_kelas')
+                    ->where('master_target.nama', 'deresan')
+                    ->whereNotIn('santri.id_kelas', ['boyong', 25])
+                    ->groupBy('master_tingkatan.tingkatan')
+            
+                    ->unionAll(
+                        DB::table('murojaah')
+                            ->select(
+                                'master_tingkatan.tingkatan',
+                                DB::raw('COUNT(DISTINCT murojaah.id_santri) AS totalSantri'),
+                                DB::raw('COUNT(DISTINCT CASE WHEN murojaah.jumlah >= master_target.jumlah THEN murojaah.id_santri END) AS totalTarget'),
+                                DB::raw('COUNT(DISTINCT CASE WHEN murojaah.jumlah IS NULL THEN murojaah.id_santri END) AS totalTidakTertulis'),
+                                DB::raw('COUNT(DISTINCT CASE WHEN murojaah.jumlah < master_target.jumlah THEN murojaah.id_santri END) AS totalTidakTarget')
+                            )
+                            ->leftJoin('santri', 'santri.id', '=', 'murojaah.id_santri')
+                            ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
+                            ->leftJoin('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
+                            ->leftJoin('master_target', DB::raw('FIND_IN_SET(master_tingkatan.id, master_target.id_tingkatan)'), '>', DB::raw('0'))
+                            ->whereNotNull('santri.id_kelas')
+                            ->where('master_target.nama', 'deresan')
+                            ->whereNotIn('santri.id_kelas', ['boyong', 25])
+                            ->groupBy('master_tingkatan.tingkatan')
+                    );
+            }, 'combined_data')
+            ->groupBy('tingkatan')
+            ->select(
+                'tingkatan',
+                DB::raw('SUM(totalSantri) AS totalSantri'),
+                DB::raw('SUM(totalTarget) AS totalTarget'),
+                DB::raw('SUM(totalTidakTertulis) AS totalTidakTertulis'),
+                DB::raw('SUM(totalTidakTarget) AS totalTidakTarget')
+            )
+            ->get();
+    
+            $dataDiagramGraphDeresan = $deresanGraph->mapWithKeys(function ($item) {
+                return [
+                    $item->tingkatan => [
+                        'totalSantri' => $item->totalTarget + $item->totalTidakTertulis + $item->totalTidakTarget,
+                        'totalTarget' => $item->totalTarget,
+                        'totalTidakTertulis' => $item->totalTidakTertulis,
+                        'totalTidakTarget' => $item->totalTidakTarget,
+                    ]
+                ];
+            });
 
             return response()->json([
                 'persentaseKhatamZiyadah' => $persentaseKhatamZiyadah,
@@ -1026,6 +982,19 @@ class DashboardController extends Controller
             $sheet1->fromArray($rowData, null, 'A' . $row++);
         }
 
+        $sheet1->setCellValue('A' . ($row + 5), 'Catatan*** : ')
+        ->getStyle('A' . ($row + 5))->applyFromArray([
+            'font' => [
+                'bold' => true,
+                'size' => 12
+            ],
+            'alignment' => [
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+            ],
+        ]);
+
+        $sheet1->mergeCells('A' . ($row + 5) . ':Y' . ($row + 10));
+
         $sheet1->getStyle('A5:Y' . $row)->applyFromArray([
             'borders' => [
                 'allBorders' => [
@@ -1044,6 +1013,19 @@ class DashboardController extends Controller
             $newSheet = new \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet($spreadsheet, "Pantauan Hafalan");
             $sheet2 = $spreadsheet->addSheet($newSheet);
             $spreadsheet->setActiveSheetIndex(1);
+
+            $sheet2->mergeCells('A1:J1')
+            ->setCellValue('A1', 'PANTAUAN PERKEMBANGAN HAFALAN SANTRI | ' . $textTglAwal . ' - ' . $textTglAkhir)
+            ->getStyle('A1')->applyFromArray([
+                'font' => [
+                    'bold' => true,
+                    'size' => 12
+                ],
+                'alignment' => [
+                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                    'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                ],
+            ]);
 
             // Header tabel
             $headers = ['Keterangan Ziyadah Santri', 'Kelas VII', 'Kelas VIII', 'Kelas IX', 'Kelas X', 'Kelas XI', 'Kelas XII', 'Jumlah'];
@@ -1121,99 +1103,143 @@ class DashboardController extends Controller
                 $sheet2->fromArray($rowData, null, 'A' . $row++);
             }
 
-            $sheet2->getStyle('A4:H4')->applyFromArray([
-                'fill' => [
-                    'fillType' => Fill::FILL_SOLID,
-                    'startColor' => ['rgb' => 'F0A04B'],
-                ],
-                'font' => [
-                    'bold' => true,
-                ],
-                'alignment' => [
-                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-                    'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
-                ],
-            ]);
+            $ranges = ['A4:H4', 'A18:H18'];
+
+            foreach ($ranges as $range) {
+                $sheet2->getStyle($range)->applyFromArray([
+                    'fill' => [
+                        'fillType' => Fill::FILL_SOLID,
+                        'startColor' => ['rgb' => 'F0A04B'],
+                    ],
+                    'font' => [
+                        'bold' => true,
+                    ],
+                    'alignment' => [
+                        'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                        'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                    ],
+                ]);
+            }
             
             $sheet2->getStyle('A5:A8')->getFont()->setBold(true);
 
-            $sheet2->getStyle('A8:H8')->applyFromArray([
-                'fill' => [
-                    'fillType' => Fill::FILL_SOLID,
-                    'startColor' => ['rgb' => 'EEEEEE'],
-                ],
+            $ranges = ['A8:H8', 'A22:H22'];
+            foreach ($ranges as $range) {
+                $sheet2->getStyle($range)->applyFromArray([
+                    'fill' => [
+                        'fillType' => Fill::FILL_SOLID,
+                        'startColor' => ['rgb' => 'EEEEEE'],
+                    ],
+                ]);
+            }
+
+            $sheet2->mergeCells('A3:G3')
+            ->setCellValue('A3', 'Target Ziyadah (Pojokan) yaitu 7 pojok (Kelas 7) dan 11 Pojok (Kelas 8-12)')
+            ->getStyle('A3')->applyFromArray([
+                'font' => [
+                    'bold' => true,
+                    'size' => 12
+                ]
             ]);
+
+            $sheet2->mergeCells('A17:G17')
+            ->setCellValue('A17', 'Target Deresan yaitu 30 pojok (Kelas 7) dan 80 Pojok (Kelas 8-12)')
+            ->getStyle('A17')->applyFromArray([
+                'font' => [
+                    'bold' => true,
+                    'size' => 12
+                ]
+            ]);
+            
+            
             $sheet2->getStyle('A8')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
             $sheet2->getStyle('A8')->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
 
             $sheet2->getStyle('B5:H8')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
             $sheet2->getStyle('B5:H8')->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
 
-            $sheet2->getStyle('A4:H8')->applyFromArray([
-                'borders' => [
-                    'allBorders' => [
-                        'borderStyle' => Border::BORDER_THIN, // Garis tipis
-                        'color' => ['rgb' => '000000'], // Warna hitam
+            $ranges = ['A4:H8', 'A18:H22']; // Tambahkan range lain jika perlu
+
+            foreach ($ranges as $range) {
+                $sheet2->getStyle($range)->applyFromArray([
+                    'borders' => [
+                        'allBorders' => [
+                            'borderStyle' => Border::BORDER_THIN, // Garis tipis
+                            'color' => ['rgb' => '000000'], // Warna hitam
+                        ],
                     ],
-                ],
-            ]);
+                ]);
+            }
 
-            $deresanAGraph = DeresanA::select(
-                    'master_tingkatan.tingkatan',
-                    DB::raw('COUNT(DISTINCT deresan_a.id_santri) AS totalSantri'),
-                    DB::raw('SUM(CASE WHEN deresan_a.jumlah >= master_target.jumlah THEN 1 ELSE 0 END) AS totalTarget'),
-                    DB::raw('SUM(CASE WHEN deresan_a.jumlah >= master_target.jumlah AND deresan_a.status = 2 THEN 1 ELSE 0 END) AS totalKhatam'),
-                    DB::raw('SUM(CASE WHEN deresan_a.jumlah < master_target.jumlah THEN 1 ELSE 0 END) AS totalTidakTertulis')
-                )
-                ->leftJoin('santri', 'santri.id', '=', 'deresan_a.id_santri')
-                ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
-                ->leftJoin('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
-                ->leftJoin('master_target', DB::raw('FIND_IN_SET(master_tingkatan.id, master_target.id_tingkatan)'), '>', DB::raw('0'))
-                ->when($idRole == 2, function ($query) use ($idUser) {
-                    return $query->where('deresan_a.id_ustad', $idUser);
-                })
-                ->whereIn('id_waktu', $idWaktus)
-                ->whereNotNull('santri.id_kelas')
-                ->where('master_target.nama', 'deresan')
-                ->where('santri.id_kelas', '!=', 'boyong')
-                ->where('santri.id_kelas', '!=', 25)
-                ->groupBy('master_tingkatan.tingkatan')
-                ->get();
-
-            $murojaahGraph = Murojaah::select(
-                    'master_tingkatan.tingkatan',
-                    DB::raw('COUNT(DISTINCT murojaah.id_santri) AS totalSantri'),
-                    DB::raw('SUM(CASE WHEN murojaah.jumlah >= master_target.jumlah THEN 1 ELSE 0 END) AS totalTarget'),
-                    DB::raw('SUM(CASE WHEN murojaah.jumlah >= master_target.jumlah AND murojaah.status = 2 THEN 1 ELSE 0 END) AS totalKhatam'),
-                    DB::raw('SUM(CASE WHEN murojaah.jumlah < master_target.jumlah THEN 1 ELSE 0 END) AS totalTidakTertulis')
-                )
-                ->whereIn('id_waktu', $idWaktus)
-                ->leftJoin('santri', 'santri.id', '=', 'murojaah.id_santri')
-                ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
-                ->leftJoin('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
-                ->leftJoin('master_target', DB::raw('FIND_IN_SET(master_tingkatan.id, master_target.id_tingkatan)'), '>', DB::raw('0'))
-                ->when($idRole == 2, function ($query) use ($idUser) {
-                    return $query->where('murojaah.id_ustad', $idUser);
-                })
-                ->whereNotNull('santri.id_kelas')
-                ->where('master_target.nama', 'deresan')
-                ->where('santri.id_kelas', '!=', 'boyong')
-                ->where('santri.id_kelas', '!=', 25)
-                ->groupBy('master_tingkatan.tingkatan')
-                ->get();
-
-            $deresanGraph = $deresanAGraph->merge($murojaahGraph);
+            $deresanGraph = DB::query()->fromSub(function ($query) use ($idWaktus, $idUser, $idRole) {
+                $query->select(
+                        'master_tingkatan.tingkatan',
+                        DB::raw('COUNT(DISTINCT deresan_a.id_santri) AS totalSantri'),
+                        DB::raw('COUNT(DISTINCT CASE WHEN deresan_a.jumlah >= master_target.jumlah THEN deresan_a.id_santri END) AS totalTarget'),
+                        DB::raw('COUNT(DISTINCT CASE WHEN deresan_a.jumlah IS NULL THEN deresan_a.id_santri END) AS totalTidakTertulis'),
+                        DB::raw('COUNT(DISTINCT CASE WHEN deresan_a.jumlah < master_target.jumlah THEN deresan_a.id_santri END) AS totalTidakTarget')
+                    )
+                    ->from('deresan_a')
+                    ->leftJoin('santri', 'santri.id', '=', 'deresan_a.id_santri')
+                    ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
+                    ->leftJoin('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
+                    ->leftJoin('master_target', DB::raw('FIND_IN_SET(master_tingkatan.id, master_target.id_tingkatan)'), '>', DB::raw('0'))
+                    ->whereIn('id_waktu', $idWaktus)
+                    ->when($idRole == 2, function ($query) use ($idUser) {
+                        return $query->where('id_ustad', $idUser);
+                    })
+                    ->whereNotNull('santri.id_kelas')
+                    ->where('master_target.nama', 'deresan')
+                    ->whereNotIn('santri.id_kelas', ['boyong', 25])
+                    ->groupBy('master_tingkatan.tingkatan')
             
+                    ->unionAll(
+                        DB::table('murojaah')
+                            ->select(
+                                'master_tingkatan.tingkatan',
+                                DB::raw('COUNT(DISTINCT murojaah.id_santri) AS totalSantri'),
+                                DB::raw('COUNT(DISTINCT CASE WHEN murojaah.jumlah >= master_target.jumlah THEN murojaah.id_santri END) AS totalTarget'),
+                                DB::raw('COUNT(DISTINCT CASE WHEN murojaah.jumlah IS NULL THEN murojaah.id_santri END) AS totalTidakTertulis'),
+                                DB::raw('COUNT(DISTINCT CASE WHEN murojaah.jumlah < master_target.jumlah THEN murojaah.id_santri END) AS totalTidakTarget')
+                            )
+                            ->leftJoin('santri', 'santri.id', '=', 'murojaah.id_santri')
+                            ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
+                            ->leftJoin('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
+                            ->leftJoin('master_target', DB::raw('FIND_IN_SET(master_tingkatan.id, master_target.id_tingkatan)'), '>', DB::raw('0'))
+                            ->whereIn('id_waktu', $idWaktus)
+                            ->when($idRole == 2, function ($query) use ($idUser) {
+                                return $query->where('id_ustad', $idUser);
+                            })
+                            ->whereNotNull('santri.id_kelas')
+                            ->where('master_target.nama', 'deresan')
+                            ->whereNotIn('santri.id_kelas', ['boyong', 25])
+                            ->groupBy('master_tingkatan.tingkatan')
+                    );
+            }, 'combined_data')
+            ->groupBy('tingkatan')
+            ->select(
+                'tingkatan',
+                DB::raw('SUM(totalSantri) AS totalSantri'),
+                DB::raw('SUM(totalTarget) AS totalTarget'),
+                DB::raw('SUM(totalTidakTertulis) AS totalTidakTertulis'),
+                DB::raw('SUM(totalTidakTarget) AS totalTidakTarget')
+            )
+            ->get();
+    
             $dataDeresan = $deresanGraph->mapWithKeys(function ($item) {
                 return [
                     $item->tingkatan => [
-                        'totalSantri' => $item->totalTarget + $item->totalKhatam + $item->totalTidakTertulis,
+                        'totalSantri' => $item->totalTarget + $item->totalTidakTertulis + $item->totalTidakTarget,
                         'totalTarget' => $item->totalTarget,
-                        'totalKhatam' => $item->totalKhatam,
                         'totalTidakTertulis' => $item->totalTidakTertulis,
+                        'totalTidakTarget' => $item->totalTidakTarget,
                     ]
                 ];
-            })->toArray();
+            });
+
+            // Header tabel
+            $headersDeresan = ['Keterangan', 'Kelas VII', 'Kelas VIII', 'Kelas IX', 'Kelas X', 'Kelas XI', 'Kelas XII', 'Jumlah'];
+            $sheet2->fromArray([$headersDeresan], NULL, 'A18');
 
             // Inisialisasi Data untuk Spreadsheet
             $dataSide = [
@@ -1226,7 +1252,8 @@ class DashboardController extends Controller
             $totalTarget = $totalTidakTarget = $totalTidakTertulis = $totalSantri = 0;
 
             // Isi Data dari Tingkatan 7 sampai 12
-            for ($i = 7; $i <= 12; $i++) {
+            for ($i = 7; $i <= 12; $i++) 
+            {
                 $dataSide[0][] = $dataDeresan[$i]['totalTarget'] ?? 0;
                 $totalTarget += $dataDeresan[$i]['totalTarget'] ?? 0;
 
@@ -1246,7 +1273,7 @@ class DashboardController extends Controller
             $dataSide[2][] = $totalTidakTertulis;
             $dataSide[3][] = $totalSantri;
 
-            $row = 10;
+            $row = 19;
 
             // Menambahkan data ke spreadsheet
             foreach ($dataSide as $rowData) {
