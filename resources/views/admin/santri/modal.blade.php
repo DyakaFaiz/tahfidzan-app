@@ -102,8 +102,11 @@
                                                 <label>Kelas</label>
                                             </div>
                                             <div class="col-md-8 form-group">
-                                                <input type="text" id="tambah-kelas" class="form-control"
-                                                    name="kelas" placeholder="Kelas">
+                                                <select class="choices form-select" id="kelas" name="kelas">
+                                                    @foreach ($masterKelas as $row)
+                                                        <option value="{{ $row->id }}">{{ $row->kelas }}</option>
+                                                    @endforeach
+                                                </select>
                                             </div>
 
                                             <div class="col-sm-12 d-flex justify-content-end">

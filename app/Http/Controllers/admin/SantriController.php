@@ -62,7 +62,7 @@ class SantriController extends Controller
         
         $data = [
             'nama'  => $request->nama,
-            'kelas'  => $request->kelas,
+            'id_kelas'  => $request->kelas,
             'status'  => 1,
         ];
 
