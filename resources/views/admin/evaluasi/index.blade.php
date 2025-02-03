@@ -225,7 +225,7 @@
                                                                     <td>{{ $row->namaSantri }}</td>
                                                                     <td>{{ $row->catatan }}</td>
                                                                     <td>
-                                                                        <button class="btn btn-success btn-sm btn-action" data-kode="1" data-id="{{ $row->id }}">
+                                                                        <button class="btn btn-success btn-sm btn-action" data-kode="2" data-id="{{ $row->id }}">
                                                                             <i class="bi bi-check-lg"></i>✔
                                                                         </button>
                                                                     </td>
@@ -332,7 +332,7 @@
                                                                     <td>{{ $row->namaSantri }}</td>
                                                                     <td>{{ $row->catatan }}</td>
                                                                     <td>
-                                                                        <button class="btn btn-success btn-sm btn-action" data-kode="1" data-id="{{ $row->id }}">
+                                                                        <button class="btn btn-success btn-sm btn-action" data-kode="3" data-id="{{ $row->id }}">
                                                                             <i class="bi bi-check-lg"></i>✔
                                                                         </button>
                                                                     </td>
@@ -439,7 +439,7 @@
                                                                     <td>{{ $row->namaSantri }}</td>
                                                                     <td>{{ $row->catatan }}</td>
                                                                     <td>
-                                                                        <button class="btn btn-success btn-sm btn-action" data-kode="1" data-id="{{ $row->id }}">
+                                                                        <button class="btn btn-success btn-sm btn-action" data-kode="4" data-id="{{ $row->id }}">
                                                                             <i class="bi bi-check-lg"></i>✔
                                                                         </button>
                                                                     </td>
