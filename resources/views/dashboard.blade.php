@@ -388,6 +388,11 @@
                         type: "bar",
                         height: 350,
                     },
+                    xaxis: {
+                        labels: {
+                            show: true,
+                        }
+                    },
                     plotOptions: {
                         bar: {
                         horizontal: false,
@@ -405,6 +410,10 @@
                     },
                     xaxis: {
                         categories: graphContentZiyadah,
+                        labels: {
+                            show: true,
+                            // Anda dapat mengurangi ukuran font atau memodifikasi tampilan label
+                        }
                     },
                     yaxis: {
                         title: {
@@ -684,6 +693,12 @@
                         dataLabels: {
                             enabled: false,
                         },
+                        xaxis: {
+                            labels: {
+                                show: true,
+                                // Anda dapat mengurangi ukuran font atau memodifikasi tampilan label
+                            }
+                        },
                         stroke: {
                             show: true,
                             width: 2,
@@ -691,6 +706,10 @@
                         },
                         xaxis: {
                             categories: graphContentZiyadah,
+                            labels: {
+                                show: true,
+                                // Anda dapat mengurangi ukuran font atau memodifikasi tampilan label
+                            }
                         },
                         yaxis: {
                             title: {
