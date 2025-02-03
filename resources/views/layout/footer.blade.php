@@ -1,4 +1,4 @@
-<footer>
+<footer class="mt-5">
     <div class="footer d-flex justify-content-between align-items-center mb-0 text-muted">
         <div>
             <p><script>document.write(new Date().getFullYear())</script> &copy; BINNUS</p>

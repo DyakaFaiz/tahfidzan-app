@@ -42,6 +42,17 @@
         z-index: 1;
         background-color: #007bff;
     } */
+
+    @media (max-width: 767px) {
+        /* Mengurangi ukuran font tabel untuk layar kecil */
+        table {
+            font-size: 12px;
+        }
+        /* Jika perlu, Anda bisa mengurangi padding sel juga */
+        table td, table th {
+            padding: 0.1rem;
+        }
+    }
 </style>
 @endsection
 

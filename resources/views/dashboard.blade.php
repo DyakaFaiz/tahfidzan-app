@@ -31,14 +31,24 @@
         background-color: #f0f0f0;
         color: #aaa;
     }
+    @media (max-width: 767px) {
+        /* Mengurangi ukuran font tabel untuk layar kecil */
+        table {
+            font-size: 12px;
+        }
+        /* Jika perlu, Anda bisa mengurangi padding sel juga */
+        table td, table th {
+            padding: 0.5rem;
+        }
+    }
 </style>
 @endsection
 
 @section('content')
 <div class="row">
     <div class="col">
-        <div class="card">
-            <div class="card-body">
+        <div class="">
+            <div class="">
                 <div id="text-waktu-ziyadah" class="row d-none mb-3">
                     <div class="col-md-4 text-center">
                         <h3 id="text-tgl-awal-ziyadah"></h3>
@@ -50,7 +60,7 @@
                         <h3 id="text-tgl-akhir-ziyadah"></h3>
                     </div>
                 </div>
-                <div class="row">
+                <div class="row d-flex align-items-center">
                     <div class="col-md-8 col-12">
                         <div class="card">
                             <div class="card-header">
@@ -61,8 +71,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 col-12">
-                        <div class="px-2">
+                    <div class="col-md-4 col-12 bg-white rounded">
+                        <div class="p-3">
                             <h4>Chart Ziyadah Hafalan Santri</h4>
                         </div>
                         <div class="card-body">
@@ -86,7 +96,7 @@
                     </div>
                 </div>
 
-                <div class="row">
+                <div class="row mt-4">
                     <div class="col-md-8 col-12">
                         <div class="card">
                             <div class="card-header">
@@ -97,8 +107,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 col-12">
-                        <div class="card-body">
+                    <div class="col-md-4 col-12 d-flex align-items-center justify-content-center">
+                        <div class="bg-white rounded p-5">
                             <div id="chart-deresan"></div>
                         </div>
                     </div>
@@ -107,7 +117,7 @@
                 <hr>
 
                 {{-- Blangko --}}
-                <form id="form-range-waktu">
+                <form id="form-range-waktu" class="bg-white rounded p-3">
                     <div class="row">
                         <div class="py-2">
                             <h4>Blangko Santri</h4>
@@ -136,9 +146,9 @@
                         </div>
                     </div>
                 </form>
-                <div class="col-12">
+                <div class="col-12 bg-white rounded p-4 d-none" id="blangko-wrapper">
                     <div class="table-responsive table-wrapper">
-                        <table class="table table-lg d-none" id="tabel-blangko">
+                        <table class="table table-lg" id="tabel-blangko">
                             <thead>
                                 <tr class="sticky-row">
                                     <th rowspan="3">NO</th>
@@ -578,7 +588,7 @@
                     $('#text-tgl-awal-blangko').text(response.txtTglAwal);
                     $('#text-emote-blangko').text('➡️');
                     $('#text-tgl-akhir-blangko').text(response.txtTglAkhir);
-                    $('#tabel-blangko').removeClass('d-none');
+                    $('#blangko-wrapper').removeClass('d-none');
 
                     // Perbarui input tanggal
                     $("#tanggal-awal-blangko").val(response.formattedAwal);

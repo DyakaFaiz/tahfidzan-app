@@ -1,7 +1,20 @@
 @extends('layout.main')
 
 @section('custom-header-css')
-<link rel="stylesheet" href="{{ url('') }}/assets/vendors/simple-datatables/style.css">
+    <link rel="stylesheet" href="{{ url('') }}/assets/vendors/simple-datatables/style.css">
+    <!-- CSS tambahan untuk penyesuaian tampilan tabel di perangkat mobile -->
+    <style>
+        @media (max-width: 767px) {
+            /* Mengurangi ukuran font tabel untuk layar kecil */
+            #table-1 {
+                font-size: 12px;
+            }
+            /* Jika perlu, Anda bisa mengurangi padding sel juga */
+            #table-1 td, #table-1 th {
+                padding: 0.5rem;
+            }
+        }
+    </style>
 @endsection
 
 @section('content')
