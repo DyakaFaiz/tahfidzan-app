@@ -101,11 +101,25 @@
                     </ul>
                 </li>
 
-                <li class="sidebar-item {{ Route::is('ketahfidzan.evaluasi.index') ? 'active' : '' }}">
-                    <a href="{{ route('ketahfidzan.evaluasi.index') }}" class='sidebar-link'>
+                <li class="sidebar-item has-sub {{ Route::is('ketahfidzan.evaluasi.deresan-a.index') || Route::is('ketahfidzan.evaluasi.murojaah.index') || Route::is('ketahfidzan.evaluasi.tahsin-binnadhor.index') || Route::is('ketahfidzan.evaluasi.ziyadah.index') ? 'active' : '' }}">
+                    <a href="#" class='sidebar-link'>
                         <i class="bi bi-file-earmark-ruled-fill"></i>
                         <span>Evaluasi</span>
                     </a>
+                    <ul class="submenu ">
+                        <li class="submenu-item {{ Route::is('ketahfidzan.evaluasi.deresan-a.index') ? 'active' : '' }}">
+                            <a href="{{ route('ketahfidzan.evaluasi.deresan-a.index') }}">Deresan A</a>
+                        </li>
+                        <li class="submenu-item {{ Route::is('ketahfidzan.evaluasi.murojaah.index') ? 'active' : '' }}">
+                            <a href="{{ route('ketahfidzan.evaluasi.murojaah.index') }}">Murojaah</a>
+                        </li>
+                        <li class="submenu-item {{ Route::is('ketahfidzan.evaluasi.tahsin-binnadhor.index') ? 'active' : '' }}">
+                            <a href="{{ route('ketahfidzan.evaluasi.tahsin-binnadhor.index') }}">Tahsin Binnadhor</a>
+                        </li>
+                        <li class="submenu-item {{ Route::is('ketahfidzan.evaluasi.ziyadah.index') ? 'active' : '' }}">
+                            <a href="{{ route('ketahfidzan.evaluasi.ziyadah.index') }}">Ziyadah</a>
+                        </li>
+                    </ul>
                 </li>
             @endif
         </ul>

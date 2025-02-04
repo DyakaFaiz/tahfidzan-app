@@ -16,6 +16,10 @@ use App\Http\Controllers\admin\TahsinBinnadhorController;
 use App\Http\Controllers\admin\UstadTahfidzController;
 use App\Http\Controllers\admin\ZiyadahController;
 use App\Http\Controllers\admin\EvaluasiController;
+use App\Http\Controllers\admin\EvaluasiDeresanAController;
+use App\Http\Controllers\admin\EvaluasiMurojaahController;
+use App\Http\Controllers\admin\EvaluasiTahsinController;
+use App\Http\Controllers\admin\EvaluasiZiyadahController;
 
 Route::get('/', [AuthController::class, 'login'])->name('login');
 Route::post('/login-proses', [AuthController::class, 'loginProses'])->name('login-proses');
@@ -130,7 +134,38 @@ Route::middleware(['login'])->group(function () {
             'as' => 'evaluasi.',
             'middleware' => 'roleAccess:1|2'
         ], function () {
-            Route::get('/', [EvaluasiController::class, 'index'])->name('index');
+            Route::group([
+                'prefix' => '/deresan-a',
+                'as' => 'deresan-a.',
+                'middleware' => 'roleAccess:1|2'
+            ], function () {
+                Route::get('/', [EvaluasiDeresanAController::class, 'index'])->name('index');
+            });
+
+            Route::group([
+                'prefix' => '/murojaah',
+                'as' => 'murojaah.',
+                'middleware' => 'roleAccess:1|2'
+            ], function () {
+                Route::get('/', [EvaluasiMurojaahController::class, 'index'])->name('index');
+            });
+            
+            Route::group([
+                'prefix' => '/tahsin-binnadhor',
+                'as' => 'tahsin-binnadhor.',
+                'middleware' => 'roleAccess:1|2'
+            ], function () {
+                Route::get('/', [EvaluasiTahsinController::class, 'index'])->name('index');
+            });
+
+            Route::group([
+                'prefix' => '/ziyadah',
+                'as' => 'ziyadah.',
+                'middleware' => 'roleAccess:1|2'
+            ], function () {
+                Route::get('/', [EvaluasiZiyadahController::class, 'index'])->name('index');
+            });
+
             Route::post('/tahfidzan', [EvaluasiController::class, 'updateEvaluasi'])->name('update-evaluasi');
         });
     });
