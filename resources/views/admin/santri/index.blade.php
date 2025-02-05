@@ -41,7 +41,7 @@
             .then(data => {
                 const table = new simpleDatatables.DataTable("#table-1", {
                     data: {
-                        headings: ["No", "Nama", "Kelas", "Status", "Aksi"],
+                        headings: ["No", "Nama", "Kelas", "Ustad Tahfidz", "Status", "Aksi"],
                         data: data.data,
                     },
                 });

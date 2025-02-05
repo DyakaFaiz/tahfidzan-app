@@ -29,11 +29,13 @@ class SantriController extends Controller
 
     public function getData()
     {
-        $data = Santri::select('santri.*', 'master_kelas.kelas as kelasSantri')
-                ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
-                ->orderBy('santri.nama', 'asc')
-                ->get()
-                ;
+        $data = Santri::select('santri.*', 'master_kelas.kelas as kelasSantri', 'users.nama AS namaUstad')
+            ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
+            ->leftJoin('master_ketahfidzan', 'master_ketahfidzan.id_santri', '=', 'santri.id')
+            ->leftJoin('users', 'users.id', '=', 'master_ketahfidzan.id_ustad')
+            ->orderBy('santri.nama', 'asc')
+            ->get()
+            ;
 
         $transformedData = $data->map(function ($row, $index) {
             $aksi = "
@@ -45,6 +47,7 @@ class SantriController extends Controller
                 $index + 1,
                 $row->nama,
                 $row->kelasSantri,
+                $row->namaUstad,
                 $status,
                 $aksi,
             ];
