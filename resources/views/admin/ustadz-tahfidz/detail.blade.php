@@ -45,7 +45,7 @@
                 <table class="table table-lg">
                     <thead>
                         <tr>
-                            <th>NO</th>
+                            <th>No</th>
                             <th>Santri</th>
                             <th>Kelas</th>
                             <th>Status</th>
@@ -53,7 +53,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($data as $row)
+                        @forelse ($data as $row)
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
                                 <td>{{ $row->namaSantri }}</td>
@@ -73,7 +73,11 @@
                                 </td>
                                 <td><i class="bi bi-x-octagon-fill text-danger cursor-pointer btn-delete" data-id="{{ $row->id }}"></i></td>
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr class="text-center">
+                                <td colspan="5">Data Kosong</td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>

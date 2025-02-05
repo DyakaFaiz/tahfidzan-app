@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers\admin;
 
-use App\Http\Controllers\Controller;
+use App\Models\User;
 
 use App\Models\Santri;
-use App\Models\MasterKetahfidzan;
-use App\Models\MasterKuotaTahfidzan;
-
 use Illuminate\Http\Request;
+
+use App\Models\MasterKetahfidzan;
+
+use App\Http\Controllers\Controller;
+use App\Models\MasterKuotaTahfidzan;
 
 class UstadTahfidzController extends Controller
 {
@@ -25,29 +27,23 @@ class UstadTahfidzController extends Controller
 
     public function getData()
     {
-        $data = MasterKetahfidzan::select('master_ketahfidzan.*', 'users.nama as namaUstad')
-            ->leftJoin('users', 'users.id', '=', 'master_ketahfidzan.id_ustad')
-            ->get();
-
-        // Filter data untuk hanya mengambil yang namaUstad tidak kosong
-        $filteredData = $data->filter(function ($row) {
-            return !empty($row->namaUstad);
-        });
-
-        // Mengelompokkan data berdasarkan id_ustad dan menghitung jumlah id_santri unik
-        $jmlSantriPerUstad = $filteredData->groupBy('id_ustad')->map(function ($group) {
-            return $group->unique('id_santri')->count();
-        });
-
-        // Mengambil data unik berdasarkan id_ustad
-        $uniqueDataPerUstad = $filteredData->unique('id_ustad');
+        $data = User::select(
+            'users.id', 
+            'users.nama', // Jika ingin menampilkan nama user juga
+            \DB::raw('COUNT(master_ketahfidzan.id_ustad) as totalSantri')
+        )
+        ->leftJoin('master_ketahfidzan', 'master_ketahfidzan.id_ustad', '=', 'users.id')
+        ->where('users.id', '!=', 0)
+        ->orderBy('users.nama', 'asc')
+        ->groupBy('users.id', 'users.nama') // Pastikan mencantumkan semua kolom yang di-select
+        ->get();
 
         // Transformasi data akhir
-        $transformedData = $uniqueDataPerUstad->values()->map(function ($row, $index) use ($jmlSantriPerUstad) {
-            $rowUstad = '<a href="' . route('ketahfidzan.ustad-tahfidz.detail', ['id' => $row->id_ustad]) . '">' . $row->namaUstad . '</a>';
+        $transformedData = $data->values()->map(function ($row, $index) {
+            $rowUstad = '<a href="' . route('ketahfidzan.ustad-tahfidz.detail', ['id' => $row->id]) . '">' . $row->nama . '</a>';
         
-            $jmlSantri = $jmlSantriPerUstad[$row->id_ustad] ?? 0;
-        
+            $jmlSantri = $row->totalSantri;
+
             return [
                 $index + 1, // Indeks akan berurutan mulai dari 1
                 $rowUstad,
@@ -67,11 +63,7 @@ class UstadTahfidzController extends Controller
                     ->where('id_ustad', $id)
                     ->get();
 
-        if ($find->isEmpty()) {
-            return redirect()->back()->with('error', 'Data tidak ditemukan');
-        }
-
-        $firstData = $find->first();
+        $user = User::where('id', $id)->first();
 
         $santri = Santri::whereNotIn('id', function ($query) {
             $query->select('id_santri')
@@ -81,13 +73,13 @@ class UstadTahfidzController extends Controller
         ->get();
 
         $data = [
-            'namaUstad' => $firstData->namaUstad,
-            'idUstad' => $firstData->id_ustad,
+            'namaUstad' => $user->nama,
+            'idUstad' => $id,
             'data'  => $find,
             'santri'  => $santri,
             'url' => 'ketahfidzan/ustad-tahfidz',
-            'title'  => $firstData->namaUstad . 'Page',
-            'pageHeading'   => $firstData->namaUstad . ' | Ketahfidzan',
+            'title'  => $user->nama . 'Page',
+            'pageHeading'   => $user->nama . ' | Ketahfidzan',
         ];
 
         return view('admin.ustadz-tahfidz.detail', $data);
