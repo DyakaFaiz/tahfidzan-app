@@ -58,7 +58,8 @@ class TahsinBinnadhorController extends Controller
                         'tahsin_binnadhor.*',
                         'tahsin_binnadhor.id_waktu as idWaktu',
                         'ustad.nama as namaUstad',
-                        'santri.nama as namaSantri'
+                        'santri.nama as namaSantri',
+                        'santri.status as statusSantri'
                     )
                     ->leftJoin('waktu as waktu', 'waktu.id', '=', 'tahsin_binnadhor.id_waktu')
                     ->leftJoin('users as ustad', 'ustad.id', '=', 'tahsin_binnadhor.id_ustad')
@@ -71,7 +72,8 @@ class TahsinBinnadhorController extends Controller
                         'tahsin_binnadhor.*',
                         'tahsin_binnadhor.id_waktu as idWaktu',
                         'ustad.nama as namaUstad',
-                        'santri.nama as namaSantri'
+                        'santri.nama as namaSantri',
+                        'santri.status as statusSantri'
                     )
                     ->leftJoin('waktu as waktu', 'waktu.id', '=', 'tahsin_binnadhor.id_waktu')
                     ->leftJoin('users as ustad', 'ustad.id', '=', 'tahsin_binnadhor.id_ustad')

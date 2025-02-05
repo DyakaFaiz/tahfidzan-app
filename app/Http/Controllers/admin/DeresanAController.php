@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DeresanA;
 use App\Models\Waktu;
 use App\Models\Juz;
+use App\Models\MasterJuz;
 use App\Models\MasterSurat;
 use App\Models\Santri;
 use Illuminate\Support\Facades\Validator;
@@ -58,7 +59,8 @@ class DeresanAController extends Controller
                         'deresan_a.*',
                         'deresan_a.id_waktu as idWaktu',
                         'ustad.nama as namaUstad',
-                        'santri.nama as namaSantri'
+                        'santri.nama as namaSantri',
+                        'santri.status as statusSantri'
                     )
                     ->leftJoin('waktu as waktu', 'waktu.id', '=', 'deresan_a.id_waktu')
                     ->leftJoin('users as ustad', 'ustad.id', '=', 'deresan_a.id_ustad')
@@ -71,7 +73,8 @@ class DeresanAController extends Controller
                         'deresan_a.*',
                         'deresan_a.id_waktu as idWaktu',
                         'ustad.nama as namaUstad',
-                        'santri.nama as namaSantri'
+                        'santri.nama as namaSantri',
+                        'santri.status as statusSantri'
                     )
                     ->leftJoin('waktu as waktu', 'waktu.id', '=', 'deresan_a.id_waktu')
                     ->leftJoin('users as ustad', 'ustad.id', '=', 'deresan_a.id_ustad')

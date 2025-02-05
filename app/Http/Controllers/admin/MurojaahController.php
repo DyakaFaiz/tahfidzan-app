@@ -58,7 +58,8 @@ class MurojaahController extends Controller
                         'murojaah.*',
                         'murojaah.id_waktu as idWaktu',
                         'ustad.nama as namaUstad',
-                        'santri.nama as namaSantri'
+                        'santri.nama as namaSantri',
+                        'santri.status as statusSantri'
                     )
                     ->leftJoin('waktu as waktu', 'waktu.id', '=', 'murojaah.id_waktu')
                     ->leftJoin('users as ustad', 'ustad.id', '=', 'murojaah.id_ustad')
@@ -71,7 +72,8 @@ class MurojaahController extends Controller
                         'murojaah.*',
                         'murojaah.id_waktu as idWaktu',
                         'ustad.nama as namaUstad',
-                        'santri.nama as namaSantri'
+                        'santri.nama as namaSantri',
+                        'santri.status as statusSantri'
                     )
                     ->leftJoin('waktu as waktu', 'waktu.id', '=', 'murojaah.id_waktu')
                     ->leftJoin('users as ustad', 'ustad.id', '=', 'murojaah.id_ustad')

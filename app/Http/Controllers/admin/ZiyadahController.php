@@ -59,7 +59,8 @@ class ZiyadahController extends Controller
                         'ziyadah.*',
                         'ziyadah.id_waktu as idWaktu',
                         'ustad.nama as namaUstad',
-                        'santri.nama as namaSantri'
+                        'santri.nama as namaSantri',
+                        'santri.status as statusSantri'
                     )
                     ->leftJoin('waktu as waktu', 'waktu.id', '=', 'ziyadah.id_waktu')
                     ->leftJoin('users as ustad', 'ustad.id', '=', 'ziyadah.id_ustad')
@@ -72,7 +73,8 @@ class ZiyadahController extends Controller
                         'ziyadah.*',
                         'ziyadah.id_waktu as idWaktu',
                         'ustad.nama as namaUstad',
-                        'santri.nama as namaSantri'
+                        'santri.nama as namaSantri',
+                        'santri.status as statusSantri'
                     )
                     ->leftJoin('waktu as waktu', 'waktu.id', '=', 'ziyadah.id_waktu')
                     ->leftJoin('users as ustad', 'ustad.id', '=', 'ziyadah.id_ustad')

@@ -1358,6 +1358,7 @@ class DashboardController extends Controller
                     'master_ketahfidzan.*',
                     'santri.status',
                     )
+                ->where('status', '=', 1)
                 ->leftJoin('santri', 'santri.id', '=', 'master_ketahfidzan.id_santri')
                 ->get();
         

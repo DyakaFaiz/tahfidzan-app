@@ -66,6 +66,11 @@
             </div>
             <div class="card-content">
                 <div class="card-body">
+                    @if (session('idRole') == 1)
+                        <div class="col-6">
+                            <input type="text" id="searchSantri" class="form-control mb-2" placeholder="Cari nama santri...">
+                        </div>
+                    @endif
                     <!-- Table with outer spacing -->
                     <div class="table-responsive table-wrapper">
                         <table class="table table-lg">
@@ -111,7 +116,8 @@
                                                 :selected="$row->id_surat_awal ?? null"
                                                 data-id="{{ $row->id }}"
                                                 data-id-ustad="{{ $row->id_ustad }}"
-                                                class="inputDropdown"
+                                                class="inputDropdown suratAwal"
+                                                status="{{ $row->statusSantri }}"
                                             />
                                         </td>
 
@@ -123,20 +129,13 @@
                                                 :selected="$row->capaian_awal ?? null"
                                                 data-id="{{ $row->id }}"
                                                 data-id-ustad="{{ $row->id_ustad }}"
-                                                class="inputDropdown"
+                                                class="inputDropdown capaianAwal"
+                                                status="{{ $row->statusSantri }}"
                                             />
                                         </td>
                                         
                                         <td>
-                                            <x-select
-                                                name="juzAwal"
-                                                id="juz-awal-{{ $row->id }}"
-                                                :options="$juz"
-                                                :selected="$row->juz_awal ?? null"
-                                                data-id="{{ $row->id }}"
-                                                data-id-ustad="{{ $row->id_ustad }}"
-                                                class="inputDropdown"
-                                            />
+                                            <p id="juz-awal-{{ $row->id }}"></p>
                                         </td>
 
                                         {{-- Akhir --}}
@@ -148,7 +147,8 @@
                                                 :selected="$row->id_surat_akhir ?? null"
                                                 data-id="{{ $row->id }}"
                                                 data-id-ustad="{{ $row->id_ustad }}"
-                                                class="inputDropdown"
+                                                class="inputDropdown suratAkhir"
+                                                status="{{ $row->statusSantri }}"
                                             />
                                         </td>
 
@@ -160,20 +160,13 @@
                                                 :selected="$row->capaian_akhir ?? null"
                                                 data-id="{{ $row->id }}"
                                                 data-id-ustad="{{ $row->id_ustad }}"
-                                                class="inputDropdown"
+                                                class="inputDropdown capaianAkhir"
+                                                status="{{ $row->statusSantri }}"
                                             />
                                         </td>
                                         
                                         <td>
-                                            <x-select
-                                                name="juzAkhir"
-                                                id="juz-akhir-{{ $row->id }}"
-                                                :options="$juz"
-                                                :selected="$row->juz_akhir ?? null"
-                                                data-id="{{ $row->id }}"
-                                                data-id-ustad="{{ $row->id_ustad }}"
-                                                class="inputDropdown"
-                                            />
+                                            <p id="juz-akhir-{{ $row->id }}"></p>
                                         </td>
 
                                         {{-- Kehadiran --}}
@@ -186,6 +179,7 @@
                                                 data-id="{{ $row->id }}"
                                                 data-id-ustad="{{ $row->id_ustad }}"
                                                 class="inputDropdown"
+                                                status="{{ $row->statusSantri }}"
                                             />
                                         </td>
 
@@ -199,6 +193,7 @@
                                                 data-id="{{ $row->id }}"
                                                 data-id-ustad="{{ $row->id_ustad }}"
                                                 class="inputDropdown"
+                                                status="{{ $row->statusSantri }}"
                                             />
                                         </td>
                                         
@@ -245,6 +240,7 @@
         }
 
         function sendDataToServer(url, data) {
+            console.log(data)
             $.ajax({
                 url: url,
                 type: 'POST',
@@ -274,6 +270,70 @@
         }
 
         jml();
+
+        $("#searchSantri").on("keyup", function() {
+            let value = $(this).val().toLowerCase();
+            $("tbody tr").filter(function() {
+                $(this).toggle($(this).find("td:eq(1)").text().toLowerCase().indexOf(value) > -1);
+            });
+        });
+
+        // $(document).on('change', '.capaianAwal', function () {
+        //     let id = $(this).data('id');
+        //     let idUstad = $(this).data('id-ustad');
+        //     let idWaktu = parseFloat($('input[name="idWaktu"]').val());
+
+        //     let inputSuratAwal = $('#surat-awal-' + id).val()
+        //     inputCapaianAwal = $(this).val();
+
+        //     console.log("id surat awal : " + inputSuratAwal);
+        //     console.log("capaian awal : " + inputCapaianAwal);
+
+        //     let values = calculateValues(id);
+        //     updateDisplayedValues(id, values);
+
+        //     let data = {
+        //         idTahfidzan: id,
+        //         idUstad: idUstad,
+        //         idWaktu: idWaktu,
+        //         idSuratAwal: inputSuratAwal,
+        //         capaianAwal: inputCapaianAwal,
+        //         field: $(this).attr('name'),
+        //         value: inputCapaianAwal,
+        //         _token: $('meta[name="csrf-token"]').attr('content'),
+        //         _method: 'PUT',
+        //         ...values
+        //     };
+
+        //     if($(this).val() != '-'){
+        //         sendDataToServer(baseUrl + '{{ $url }}' + '/update-value/' + id, data);
+        //     }  
+        // });
+
+        $(document).on('change', '.suratAwal', function () {
+            inputSuratAwal = $(this).val();
+            // let id = $(this).data('id');
+            // let idUstad = $(this).data('id-ustad');
+            // let idWaktu = parseFloat($('input[name="idWaktu"]').val());
+
+            // let values = calculateValues(id);
+            // updateDisplayedValues(id, values);
+
+            // let data = {
+            //     idTahfidzan: id,
+            //     idUstad: idUstad,
+            //     idWaktu: idWaktu,
+            //     field: $(this).attr('name'),
+            //     value: $(this).val(),
+            //     _token: $('meta[name="csrf-token"]').attr('content'),
+            //     _method: 'PUT',
+            //     ...values
+            // };
+
+            // if($(this).val() != '-'){
+            //     sendDataToServer(baseUrl + '{{ $url }}' + '/update-value/' + id, data);
+            // }  
+        });
 
         $(document).on('change', '.inputDropdown', function () {
             let id = $(this).data('id');

@@ -65,6 +65,11 @@
             </div>
             <div class="card-content">
                 <div class="card-body">
+                    @if (session('idRole') == 1)
+                        <div class="col-6">
+                            <input type="text" id="searchSantri" class="form-control mb-2" placeholder="Cari nama santri...">
+                        </div>
+                    @endif
                     <!-- Table with outer spacing -->
                     <div class="table-responsive table-wrapper">
                         <table class="table table-lg">
@@ -111,6 +116,7 @@
                                                 data-id="{{ $row->id }}"
                                                 data-id-ustad="{{ $row->id_ustad }}"
                                                 class="inputDropdown"
+                                                status="{{ $row->statusSantri }}"
                                             />
                                         </td>
 
@@ -123,6 +129,7 @@
                                                 data-id="{{ $row->id }}"
                                                 data-id-ustad="{{ $row->id_ustad }}"
                                                 class="inputDropdown"
+                                                status="{{ $row->statusSantri }}"
                                             />
                                         </td>
                                         
@@ -135,6 +142,7 @@
                                                 data-id="{{ $row->id }}"
                                                 data-id-ustad="{{ $row->id_ustad }}"
                                                 class="inputDropdown"
+                                                status="{{ $row->statusSantri }}"
                                             />
                                         </td>
 
@@ -148,6 +156,7 @@
                                                 data-id="{{ $row->id }}"
                                                 data-id-ustad="{{ $row->id_ustad }}"
                                                 class="inputDropdown"
+                                                status="{{ $row->statusSantri }}"
                                             />
                                         </td>
 
@@ -160,6 +169,7 @@
                                                 data-id="{{ $row->id }}"
                                                 data-id-ustad="{{ $row->id_ustad }}"
                                                 class="inputDropdown"
+                                                status="{{ $row->statusSantri }}"
                                             />
                                         </td>
                                         
@@ -172,6 +182,7 @@
                                                 data-id="{{ $row->id }}"
                                                 data-id-ustad="{{ $row->id_ustad }}"
                                                 class="inputDropdown"
+                                                status="{{ $row->statusSantri }}"
                                             />
                                         </td>
 
@@ -185,6 +196,7 @@
                                                 data-id="{{ $row->id }}"
                                                 data-id-ustad="{{ $row->id_ustad }}"
                                                 class="inputDropdown"
+                                                status="{{ $row->statusSantri }}"
                                             />
                                         </td>
 
@@ -198,6 +210,7 @@
                                                 data-id="{{ $row->id }}"
                                                 data-id-ustad="{{ $row->id_ustad }}"
                                                 class="inputDropdown"
+                                                status="{{ $row->statusSantri }}"
                                             />
                                         </td>
                                         
@@ -273,6 +286,13 @@
         }
 
         jml();
+        
+        $("#searchSantri").on("keyup", function() {
+            let value = $(this).val().toLowerCase();
+            $("tbody tr").filter(function() {
+                $(this).toggle($(this).find("td:eq(1)").text().toLowerCase().indexOf(value) > -1);
+            });
+        });
 
         $(document).on('change', '.inputDropdown', function () {
             let id = $(this).data('id');

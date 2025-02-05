@@ -57,6 +57,7 @@
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
                                 <td>{{ $row->namaSantri }}</td>
+                                <td>{{ $row->kelasSantri }}</td>
                                 <td>
                                     @if ($row->statusSantri == 0)
                                         BOYONG
@@ -70,7 +71,6 @@
                                         Tidak Diketahui
                                     @endif
                                 </td>
-                                <td>{{ $row->kelasSantri }}</td>
                                 <td><i class="bi bi-x-octagon-fill text-danger cursor-pointer btn-delete" data-id="{{ $row->id }}"></i></td>
                             </tr>
                         @endforeach
