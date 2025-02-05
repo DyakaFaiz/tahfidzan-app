@@ -154,71 +154,63 @@ class DashboardController extends Controller
 
             // Chart Deresan
 
-            $deresanA = DeresanA::select(
-                'deresan_a.id_santri',
-                'santri.nama AS namaSantri',
-                DB::raw('SUM(deresan_a.jumlah) AS total_jumlah'),
-                'master_target.jumlah AS targetJumlah',
-                'deresan_a.status',
+            $deresan = DB::table(function ($query) use ($idWaktus, $idRole, $idUser) {
+                $query->select(
+                    'deresan_a.id_santri',
+                    'santri.nama AS namaSantri',
+                    DB::raw('SUM(deresan_a.jumlah) AS totalPojok'),
+                    'master_target.jumlah AS targetJumlah'
+                )
+                ->from('deresan_a')
+                ->leftJoin('santri', 'santri.id', '=', 'deresan_a.id_santri')
+                ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
+                ->leftJoin('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
+                ->leftJoin('master_target', DB::raw('FIND_IN_SET(master_tingkatan.id, master_target.id_tingkatan)'), '>', DB::raw('0'))
+                ->where('master_target.nama', 'deresan')
+                ->whereIn('id_waktu', $idWaktus)
+                ->when($idRole == 2, function ($query) use ($idUser) {
+                    return $query->where('id_ustad', $idUser);
+                })
+                ->groupBy('deresan_a.id_santri', 'santri.nama', 'master_target.jumlah')
+                
+                ->unionAll(
+                    DB::table('murojaah')
+                    ->select(
+                        'murojaah.id_santri',
+                        'santri.nama AS namaSantri',
+                        DB::raw('SUM(murojaah.jumlah) AS totalPojok'),
+                        'master_target.jumlah AS targetJumlah'
+                    )
+                    ->leftJoin('santri', 'santri.id', '=', 'murojaah.id_santri')
+                    ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
+                    ->leftJoin('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
+                    ->leftJoin('master_target', DB::raw('FIND_IN_SET(master_tingkatan.id, master_target.id_tingkatan)'), '>', DB::raw('0'))
+                    ->where('master_target.nama', 'deresan')
+                    ->whereIn('id_waktu', $idWaktus)
+                    ->when($idRole == 2, function ($query) use ($idUser) {
+                        return $query->where('id_ustad', $idUser);
+                    })
+                    ->groupBy('murojaah.id_santri', 'santri.nama', 'master_target.jumlah')
+                );
+            }, 'combined_data')
+            ->select(
+                'id_santri',
+                'namaSantri',
+                DB::raw('SUM(totalPojok) AS totalPojok'),
+                'targetJumlah'
             )
-            ->leftJoin('santri', 'santri.id', '=', 'deresan_a.id_santri')
-            ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
-            ->leftJoin('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
-            ->leftJoin('master_target', DB::raw('FIND_IN_SET(master_tingkatan.id, master_target.id_tingkatan)'), '>', DB::raw('0'))
-            ->where('master_target.nama', 'deresan')
-            ->whereIn('id_waktu', $idWaktus)
-            ->when($idRole == 2, function ($query) use ($idUser) {
-                return $query->where('id_ustad', $idUser);
-            })
-            ->groupBy(
-                'deresan_a.id_santri',
-                'santri.nama',
-                'master_target.jumlah',
-                'deresan_a.status',
-            )
+            ->groupBy('id_santri', 'namaSantri', 'targetJumlah')
             ->get();
 
-            $murojaah = Murojaah::select(
-                'murojaah.id_santri',
-                'santri.nama AS namaSantri',
-                DB::raw('SUM(murojaah.jumlah) AS total_jumlah'),
-                'master_target.jumlah AS targetJumlah',
-                'murojaah.status',
-            )
-            ->leftJoin('santri', 'santri.id', '=', 'murojaah.id_santri')
-            ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
-            ->leftJoin('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
-            ->leftJoin('master_target', DB::raw('FIND_IN_SET(master_tingkatan.id, master_target.id_tingkatan)'), '>', DB::raw('0'))
-            ->where('master_target.nama', 'deresan')
-            ->whereIn('id_waktu', $idWaktus)
-            ->when($idRole == 2, function ($query) use ($idUser) {
-                return $query->where('id_ustad', $idUser);
-            })
-            ->groupBy(
-                'murojaah.id_santri',
-                'santri.nama',
-                'master_target.jumlah',
-                'murojaah.status',
-            )
-            ->get();
+            $totalSantri = $deresan->count();
 
-            $deresan = $deresanA->merge($murojaah);
+            $target = $deresan->filter(fn($item) => $item->totalPojok >= $item->targetJumlah)->count();
+            $tidakTarget = $deresan->filter(fn($item) => $item->totalPojok < $item->targetJumlah && $item->totalPojok > 0)->count();
+            $tidakTertulis = $deresan->filter(fn($item) => $item->totalPojok == 0 || is_null($item->totalPojok))->count();
 
-            $totalSantriDeresan = $deresan->unique('id_santri')->count();
-            $targetDeresan = $deresan->filter(function ($item) {
-                return $item->total_jumlah >= $item->targetJumlah;
-            })->count();
-
-            $tidakTertulis = $deresan->filter(function ($item) {
-                return $item->total_jumlah == 0;
-            })->count();
-
-            $tidakTargetDeresan = $totalSantriDeresan - $targetDeresan;
-
-            $persentaseTargetDeresan = $totalSantriDeresan > 0 ? ($targetDeresan / $totalSantriDeresan) * 100 : 0;
-            $persentaseTidakTargetDeresan = $totalSantriDeresan > 0 ? ($tidakTargetDeresan / $totalSantriDeresan) * 100 : 0;
-            $persentaseTidakTertulisDeresan = $totalSantriDeresan > 0 ? ($tidakTertulis / $totalSantriDeresan) * 100 : 0;
-
+            $persentaseTargetDeresan = $totalSantri > 0 ? round(($target / $totalSantri) * 100, 2) : 0;
+            $persentaseTidakTargetDeresan = $totalSantri > 0 ? round(($tidakTarget / $totalSantri) * 100, 2) : 0;
+            $persentaseTidakTertulisDeresan = $totalSantri > 0 ? round(($tidakTertulis / $totalSantri) * 100, 2) : 0;
 
             // Graph Deresan
             $deresanGraph = DB::query()->fromSub(function ($query) use ($idWaktus, $idUser, $idRole) {
@@ -383,68 +375,55 @@ class DashboardController extends Controller
 
             // Chart Deresan
 
-            $deresanA = DeresanA::select(
-                'deresan_a.id_santri',
-                'santri.nama AS namaSantri',
-                DB::raw('SUM(deresan_a.jumlah) AS total_jumlah'),
-                'master_target.jumlah AS targetJumlah',
-                'deresan_a.status',
+            $deresan = DB::table(function ($query) {
+                $query->select(
+                    'deresan_a.id_santri',
+                    'santri.nama AS namaSantri',
+                    DB::raw('SUM(deresan_a.jumlah) AS totalPojok'),
+                    'master_target.jumlah AS targetJumlah'
+                )
+                ->from('deresan_a')
+                ->leftJoin('santri', 'santri.id', '=', 'deresan_a.id_santri')
+                ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
+                ->leftJoin('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
+                ->leftJoin('master_target', DB::raw('FIND_IN_SET(master_tingkatan.id, master_target.id_tingkatan)'), '>', DB::raw('0'))
+                ->where('master_target.nama', 'deresan')
+                ->groupBy('deresan_a.id_santri', 'santri.nama', 'master_target.jumlah')
+                
+                ->unionAll(
+                    DB::table('murojaah')
+                    ->select(
+                        'murojaah.id_santri',
+                        'santri.nama AS namaSantri',
+                        DB::raw('SUM(murojaah.jumlah) AS totalPojok'),
+                        'master_target.jumlah AS targetJumlah'
+                    )
+                    ->leftJoin('santri', 'santri.id', '=', 'murojaah.id_santri')
+                    ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
+                    ->leftJoin('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
+                    ->leftJoin('master_target', DB::raw('FIND_IN_SET(master_tingkatan.id, master_target.id_tingkatan)'), '>', DB::raw('0'))
+                    ->where('master_target.nama', 'deresan')
+                    ->groupBy('murojaah.id_santri', 'santri.nama', 'master_target.jumlah')
+                );
+            }, 'combined_data')
+            ->select(
+                'id_santri',
+                'namaSantri',
+                DB::raw('SUM(totalPojok) AS totalPojok'),
+                'targetJumlah'
             )
-            ->leftJoin('santri', 'santri.id', '=', 'deresan_a.id_santri')
-            ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
-            ->leftJoin('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
-            ->leftJoin('master_target', DB::raw('FIND_IN_SET(master_tingkatan.id, master_target.id_tingkatan)'), '>', DB::raw('0'))
-            ->where('master_target.nama', 'deresan')
-            ->when($idRole == 2, function ($query) use ($idUser) {
-                return $query->where('id_ustad', $idUser);
-            })
-            ->groupBy(
-                'deresan_a.id_santri',
-                'santri.nama',
-                'master_target.jumlah',
-                'deresan_a.status',
-            )
+            ->groupBy('id_santri', 'namaSantri', 'targetJumlah')
             ->get();
 
-            $murojaah = Murojaah::select(
-                'murojaah.id_santri',
-                'santri.nama AS namaSantri',
-                DB::raw('SUM(murojaah.jumlah) AS total_jumlah'),
-                'master_target.jumlah AS targetJumlah',
-                'murojaah.status',
-            )
-            ->leftJoin('santri', 'santri.id', '=', 'murojaah.id_santri')
-            ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
-            ->leftJoin('master_tingkatan', 'master_tingkatan.id', '=', 'master_kelas.id_tingkatan')
-            ->leftJoin('master_target', DB::raw('FIND_IN_SET(master_tingkatan.id, master_target.id_tingkatan)'), '>', DB::raw('0'))
-            ->where('master_target.nama', 'deresan')
-            ->when($idRole == 2, function ($query) use ($idUser) {
-                return $query->where('id_ustad', $idUser);
-            })
-            ->groupBy(
-                'murojaah.id_santri',
-                'santri.nama',
-                'master_target.jumlah',
-                'murojaah.status',
-            )
-            ->get();
+            $totalSantri = $deresan->count();
 
-            $deresan = $deresanA->merge($murojaah);
+            $target = $deresan->filter(fn($item) => $item->totalPojok >= $item->targetJumlah)->count();
+            $tidakTarget = $deresan->filter(fn($item) => $item->totalPojok < $item->targetJumlah && $item->totalPojok > 0)->count();
+            $tidakTertulis = $deresan->filter(fn($item) => $item->totalPojok == 0 || is_null($item->totalPojok))->count();
 
-            $totalSantriDeresan = $deresan->unique('id_santri')->count();
-            $targetDeresan = $deresan->filter(function ($item) {
-                return $item->total_jumlah >= $item->targetJumlah;
-            })->count();
-
-            $tidakTertulis = $deresan->filter(function ($item) {
-                return $item->total_jumlah == 0;
-            })->count();
-
-            $tidakTargetDeresan = $totalSantriDeresan - $targetDeresan;
-
-            $persentaseTargetDeresan = $totalSantriDeresan > 0 ? ($targetDeresan / $totalSantriDeresan) * 100 : 0;
-            $persentaseTidakTargetDeresan = $totalSantriDeresan > 0 ? ($tidakTargetDeresan / $totalSantriDeresan) * 100 : 0;
-            $persentaseTidakTertulisDeresan = $totalSantriDeresan > 0 ? ($tidakTertulis / $totalSantriDeresan) * 100 : 0;
+            $persentaseTargetDeresan = $totalSantri > 0 ? round(($target / $totalSantri) * 100, 2) : 0;
+            $persentaseTidakTargetDeresan = $totalSantri > 0 ? round(($tidakTarget / $totalSantri) * 100, 2) : 0;
+            $persentaseTidakTertulisDeresan = $totalSantri > 0 ? round(($tidakTertulis / $totalSantri) * 100, 2) : 0;
 
 
             // Graph Deresan
