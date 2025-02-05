@@ -56,7 +56,7 @@
 
                 <li class="sidebar-item has-sub {{ Route::is('ketahfidzan.tahfidzan-admin.deresan-a.index') || Route::is('ketahfidzan.tahfidzan-admin.murojaah.index') || Route::is('ketahfidzan.tahfidzan-admin.tahsin-binnadhor.index') || Route::is('ketahfidzan.tahfidzan-admin.ziyadah.index') ? 'active' : '' }}">
                     <a href="#" class='sidebar-link'>
-                        <i class="bi bi-people"></i>
+                        <i class="bi bi-file-earmark-ruled-fill"></i>
                         <span>Tahfidzan Harian</span>
                     </a>
                     <ul class="submenu ">

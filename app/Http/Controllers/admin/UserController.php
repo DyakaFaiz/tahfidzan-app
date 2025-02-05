@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\admin;
 
-use App\Http\Controllers\Controller;
-
 use App\Models\User;
 
 use Illuminate\Http\Request;
+
+use App\Http\Controllers\Controller;
+use App\Models\MasterKuotaTahfidzan;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -84,7 +85,13 @@ class UserController extends Controller
             'password'  => Hash::make($request->password),
         ];
 
-        $save = User::create($data);
+        $createUser = User::create($data);
+
+        $newUser = User::latest()->first();
+        $save = MasterKuotaTahfidzan::create([
+            'id_ustad' => $newUser->id,
+            'kuota' => 12
+        ]);
 
         if($save){
             return redirect()->back()->with('success', 'Behasil menambah data');
@@ -155,8 +162,10 @@ class UserController extends Controller
 
         try {
             $data = User::findOrFail($id);
+            $data2 = MasterKuotaTahfidzan::findOrFail($id);
 
             $data->delete();
+            $data2->delete();
 
             return response()->json(['message' => 'Berhasil menghapus data'], 200);
         } catch (ModelNotFoundException $e) {
