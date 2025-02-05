@@ -60,8 +60,9 @@ class UstadTahfidzController extends Controller
 
     public function detail($id)
     {
-        $find = MasterKetahfidzan::select('master_ketahfidzan.*', 'users.nama as namaUstad', 'santri.nama as namaSantri')
+        $find = MasterKetahfidzan::select('master_ketahfidzan.*', 'users.nama as namaUstad', 'santri.nama as namaSantri', 'santri.status AS statusSantri', 'master_kelas.kelas AS kelasSantri')
                     ->leftJoin('santri', 'santri.id', '=', 'master_ketahfidzan.id_santri')
+                    ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
                     ->leftJoin('users', 'users.id', '=', 'master_ketahfidzan.id_ustad')
                     ->where('id_ustad', $id)
                     ->get();

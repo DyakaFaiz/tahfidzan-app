@@ -47,6 +47,8 @@
                         <tr>
                             <th>NO</th>
                             <th>Santri</th>
+                            <th>Kelas</th>
+                            <th>Status</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -55,6 +57,20 @@
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
                                 <td>{{ $row->namaSantri }}</td>
+                                <td>
+                                    @if ($row->statusSantri == 0)
+                                        BOYONG
+                                    @elseif ($row->statusSantri == 1)
+                                        MASIH ZIYADAH
+                                    @elseif ($row->statusSantri == 2)
+                                        Khatam
+                                    @elseif ($row->statusSantri == 3)
+                                        Khotimin
+                                    @else
+                                        Tidak Diketahui
+                                    @endif
+                                </td>
+                                <td>{{ $row->kelasSantri }}</td>
                                 <td><i class="bi bi-x-octagon-fill text-danger cursor-pointer btn-delete" data-id="{{ $row->id }}"></i></td>
                             </tr>
                         @endforeach

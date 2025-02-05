@@ -1376,7 +1376,7 @@ class DashboardController extends Controller
                 $saveZiyadah = Ziyadah::insert($data);
 
                 if (!$saveDeresanA || !$saveMurojaah || !$saveTahsinBinnadhor || !$saveZiyadah) {
-                    session()->flash('error', 'Gagal membuat lembar hari ini, coba sekali lagi');
+                    session()->flash('error', 'Gagal membuat lembar hari ini, coba login kembali');
                 } else {
                     session()->flash('success', 'Behasil, lembar baru siap digunakan');
                 }
