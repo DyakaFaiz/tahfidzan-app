@@ -199,41 +199,41 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
-                        url: "{{ route('user.delete', '') }}/" + id, 
-                        method: 'DELETE',
-                        data: {
-                            _token: "{{ csrf_token() }}",
-                            _method: 'DELETE',
-                            id: id
-                        },
-                        success: function(response) {
-                            Toastify({
-                                text: response.message || 'Data berhasil dihapus.',
-                                duration: 3000,
-                                close: true,
-                                gravity: "top",
-                                position: "right",
-                                backgroundColor: "#4fbe87",
-                            }).showToast();
+                    url: "{{ route('user.delete', '') }}/" + id,
+                    method: 'POST', // Ubah dari DELETE ke POST
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        _method: 'DELETE', // Laravel akan mengenali sebagai DELETE
+                        id: id
+                    },
+                    success: function(response) {
+                        Toastify({
+                            text: response.message || 'Data berhasil dihapus.',
+                            duration: 3000,
+                            close: true,
+                            gravity: "top",
+                            position: "right",
+                            backgroundColor: "#4fbe87",
+                        }).showToast();
 
-                            $('#modal-edit').modal('hide');
+                        $('#modal-edit').modal('hide');
 
-                            setTimeout(function() {
-                                location.reload();
-                            }, 3000);
-                        },
-                        error: function(xhr, status, error) {
-                            Toastify({
-                                text: xhr.responseJSON?.message || 'Terjadi kesalahan!',
-                                duration: 10000,
-                                close: true,
-                                gravity: "top",
-                                position: "right",
-                                backgroundColor: "#F72C5B",
-                            }).showToast();
-                            $('#modal-edit').modal('hide');
-                        }
-                    });
+                        setTimeout(function() {
+                            location.reload();
+                        }, 3000);
+                    },
+                    error: function(xhr, status, error) {
+                        Toastify({
+                            text: xhr.responseJSON?.message || 'Terjadi kesalahan!',
+                            duration: 10000,
+                            close: true,
+                            gravity: "top",
+                            position: "right",
+                            backgroundColor: "#F72C5B",
+                        }).showToast();
+                        $('#modal-edit').modal('hide');
+                    }
+                });
                 }
             });
             $('#username').val('');
