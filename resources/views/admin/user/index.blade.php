@@ -200,10 +200,10 @@
                 if (result.isConfirmed) {
                     $.ajax({
                     url: "{{ route('user.delete', '') }}/" + id,
-                    method: 'POST', // Ubah dari DELETE ke POST
+                    method: 'POST',
                     data: {
                         _token: "{{ csrf_token() }}",
-                        _method: 'DELETE', // Laravel akan mengenali sebagai DELETE
+                        _method: 'DELETE',
                         id: id
                     },
                     success: function(response) {

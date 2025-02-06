@@ -161,16 +161,22 @@ class UserController extends Controller
     public function delete(Request $request)
     {
         $id = $request->id;
+
         if($id == 0){
             return response()->json(['message' => 'User ini tidak boleh dihapus!!'], 500);
         }
 
         try {
             $data = User::findOrFail($id);
-            $data2 = MasterKuotaTahfidzan::findOrFail($id);
+            $data2 = MasterKuotaTahfidzan::where('id_ustad', $id);
 
-            $data->delete();
-            $data2->delete();
+            if ($data) {
+                $data->delete();
+            }
+        
+            if ($data2) {
+                $data2->delete();
+            }
 
             return response()->json(['message' => 'Berhasil menghapus data'], 200);
         } catch (ModelNotFoundException $e) {
