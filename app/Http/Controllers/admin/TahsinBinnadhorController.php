@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use App\Models\Juz;
 use App\Models\Waktu;
 use App\Models\Santri;
+use App\Models\MasterJuz;
 use App\Models\MasterSurat;
 use Illuminate\Http\Request;
 use App\Models\TahsinBinnadhor;
@@ -28,7 +29,7 @@ class TahsinBinnadhorController extends Controller
         });
         
         $pojok = [];
-        for ($i = 1; $i <= 20; $i++) {
+        for ($i = 1; $i <= 29; $i++) {
             $pojok[] = (object) ['id' => $i,'nomor' => $i];
         }
 
@@ -176,11 +177,34 @@ class TahsinBinnadhorController extends Controller
             ]);
         }
 
+        $idSurat = (int) $request->idSurat;
+
+        $nomorList = MasterJuz::select('master_juz.nomor')
+            ->leftJoin("master_surat", "master_surat.id", "=", "master_juz.id_surat_dari")
+            ->where("id_surat_dari", $idSurat)
+            ->orWhere("id_surat_sampai", $idSurat)
+            ->orderBy('master_juz.nomor')
+            ->pluck('nomor')
+            ->toArray(); // Mengubah hasil query menjadi array
+
+        $jumlah = count($nomorList);
+
+        if ($jumlah == 0) {
+            $juz = null; // Jika tidak ada data, kembalikan null
+        } else {
+            $indexTengah = floor($jumlah / 2); // Cari indeks tengah
+            $juz = $nomorList[$indexTengah]; // Ambil nomor tengahnya
+        }
+
+        $idParts = explode('-', $request->idTeks);
+        $awalAkhir = isset($idParts[1]) ? $idParts[1] : null;
+
         $tahfidzan->update([
+            'juz_' . $awalAkhir => $juz,
             $field =>    $request->value,
             'jumlah' =>    $request->jmlTahsinBinnadhor,
         ]);
 
-        return response()->json(['message' => 'Berhasil merubah data'], 200);
+        return response()->json(['message' => 'Berhasil merubah data', 'rowNumber' => $request->idTahfidzan, 'juz' => $juz, 'awalAkhir' => $awalAkhir], 200);
     }
 }

@@ -115,7 +115,7 @@
                                                 :selected="$row->id_surat_awal ?? null"
                                                 data-id="{{ $row->id }}"
                                                 data-id-ustad="{{ $row->id_ustad }}"
-                                                class="inputDropdown"
+                                                class="suratAwal"
                                                 status="{{ $row->statusSantri }}"
                                             />
                                         </td>
@@ -128,22 +128,13 @@
                                                 :selected="$row->capaian_awal ?? null"
                                                 data-id="{{ $row->id }}"
                                                 data-id-ustad="{{ $row->id_ustad }}"
-                                                class="inputDropdown"
+                                                class="capaianAwal"
                                                 status="{{ $row->statusSantri }}"
                                             />
                                         </td>
                                         
                                         <td>
-                                            <x-select
-                                                name="juzAwal"
-                                                id="juz-awal-{{ $row->id }}"
-                                                :options="$juz"
-                                                :selected="$row->juz_awal ?? null"
-                                                data-id="{{ $row->id }}"
-                                                data-id-ustad="{{ $row->id_ustad }}"
-                                                class="inputDropdown"
-                                                status="{{ $row->statusSantri }}"
-                                            />
+                                            <p id="juz-awal-{{ $row->id }}">{{ $row->juz_awal }}</p>
                                         </td>
 
                                         {{-- Akhir --}}
@@ -155,7 +146,7 @@
                                                 :selected="$row->id_surat_akhir ?? null"
                                                 data-id="{{ $row->id }}"
                                                 data-id-ustad="{{ $row->id_ustad }}"
-                                                class="inputDropdown"
+                                                class="suratAkhir"
                                                 status="{{ $row->statusSantri }}"
                                             />
                                         </td>
@@ -168,22 +159,13 @@
                                                 :selected="$row->capaian_akhir ?? null"
                                                 data-id="{{ $row->id }}"
                                                 data-id-ustad="{{ $row->id_ustad }}"
-                                                class="inputDropdown"
+                                                class="suratAkhir"
                                                 status="{{ $row->statusSantri }}"
                                             />
                                         </td>
                                         
                                         <td>
-                                            <x-select
-                                                name="juzAkhir"
-                                                id="juz-akhir-{{ $row->id }}"
-                                                :options="$juz"
-                                                :selected="$row->juz_akhir ?? null"
-                                                data-id="{{ $row->id }}"
-                                                data-id-ustad="{{ $row->id_ustad }}"
-                                                class="inputDropdown"
-                                                status="{{ $row->statusSantri }}"
-                                            />
+                                            <p id="juz-akhir-{{ $row->id }}">{{ $row->juz_akhir }}</p>
                                         </td>
 
                                         {{-- Kehadiran --}}
@@ -262,6 +244,11 @@
                 type: 'POST',
                 data: data,
                 success: function (response) {
+                    $("#juz-" + response.awalAkhir + "-" + response.rowNumber).text(response.juz)
+
+                    let values = calculateValues(response.rowNumber);
+                    updateDisplayedValues(response.rowNumber, values);
+
                     Toastify({
                         text: response.message || 'Data berhasil diperbarui.',
                         duration: 3000,
@@ -277,7 +264,8 @@
             });
         }
 
-        function jml() {
+        function jml() 
+        {
             let tahfidzan = @json($tahfidzan);
             tahfidzan.forEach(row => {
                 let values = calculateValues(row.id);
@@ -292,6 +280,66 @@
             $("tbody tr").filter(function() {
                 $(this).toggle($(this).find("td:eq(1)").text().toLowerCase().indexOf(value) > -1);
             });
+        });
+
+        $(document).on('blur change', '.capaianAwal, .suratAwal', function () {
+            let id = $(this).data('id');
+            let idUstad = $(this).data('id-ustad');
+            let idWaktu = parseFloat($('input[name="idWaktu"]').val());
+
+            let inputSuratAwal = $('#surat-awal-' + id).val();
+            let inputCapaianAwal = $('#capaian-awal-' + id).val();
+
+            let values = calculateValues(id);
+            updateDisplayedValues(id, values);
+
+            let data = {
+                idTahfidzan: id,
+                idUstad: idUstad,
+                idWaktu: idWaktu,
+                idSurat: inputSuratAwal,
+                capaianAwal: inputCapaianAwal,
+                idTeks: $(this).attr('id'),
+                field: $(this).attr('name'),
+                value: inputCapaianAwal,
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                _method: 'PUT',
+                ...values
+            };
+
+            if(inputCapaianAwal != '-' && inputSuratAwal != '-'){
+                sendDataToServer(baseUrl + '{{ $url }}' + '/update-value/' + id, data);
+            }  
+        });
+
+        $(document).on('blur change', '.capaianAkhir, .suratAkhir', function () {
+            let id = $(this).data('id');
+            let idUstad = $(this).data('id-ustad');
+            let idWaktu = parseFloat($('input[name="idWaktu"]').val());
+
+            let inputSuratAkhir = $('#surat-akhir-' + id).val();
+            let inputCapaianAkhir = $('#capaian-akhir-' + id).val();
+
+            let values = calculateValues(id);
+            updateDisplayedValues(id, values);
+
+            let data = {
+                idTahfidzan: id,
+                idUstad: idUstad,
+                idWaktu: idWaktu,
+                idSurat: inputSuratAkhir,
+                capaianAwal: inputCapaianAkhir,
+                idTeks: $(this).attr('id'),
+                field: $(this).attr('name'),
+                value: inputCapaianAkhir,
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                _method: 'PUT',
+                ...values
+            };
+
+            if(inputCapaianAkhir != '-' && inputSuratAkhir != '-'){
+                sendDataToServer(baseUrl + '{{ $url }}' + '/update-value/' + id, data);
+            }  
         });
 
         $(document).on('change', '.inputDropdown', function () {

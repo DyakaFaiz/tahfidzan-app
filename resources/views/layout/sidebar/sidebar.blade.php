@@ -78,7 +78,7 @@
             @endif
 
             @if (session('idRole') == 2)
-                <li class="sidebar-title">Ketahfidzan</li>
+                <li class="sidebar-title">Harian Tahfidzan</li>
 
                 <li class="sidebar-item has-sub {{ Route::is('ketahfidzan.tahfidzan-admin.deresan-a.index') || Route::is('ketahfidzan.tahfidzan-admin.murojaah.index') || Route::is('ketahfidzan.tahfidzan-admin.tahsin-binnadhor.index') || Route::is('ketahfidzan.tahfidzan-admin.ziyadah.index') ? 'active' : '' }}">
                     <a href="#" class='sidebar-link'>
@@ -100,6 +100,8 @@
                         </li>
                     </ul>
                 </li>
+
+                <li class="sidebar-title">Evaluasi Tahfidzan</li>
 
                 <li class="sidebar-item has-sub {{ Route::is('ketahfidzan.evaluasi.deresan-a.index') || Route::is('ketahfidzan.evaluasi.murojaah.index') || Route::is('ketahfidzan.evaluasi.tahsin-binnadhor.index') || Route::is('ketahfidzan.evaluasi.ziyadah.index') ? 'active' : '' }}">
                     <a href="#" class='sidebar-link'>

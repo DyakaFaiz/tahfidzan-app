@@ -116,7 +116,7 @@
                                                 :selected="$row->id_surat_awal ?? null"
                                                 data-id="{{ $row->id }}"
                                                 data-id-ustad="{{ $row->id_ustad }}"
-                                                class="inputDropdown suratAwal"
+                                                class="suratAwal"
                                                 status="{{ $row->statusSantri }}"
                                             />
                                         </td>
@@ -129,13 +129,13 @@
                                                 :selected="$row->capaian_awal ?? null"
                                                 data-id="{{ $row->id }}"
                                                 data-id-ustad="{{ $row->id_ustad }}"
-                                                class="inputDropdown capaianAwal"
+                                                class="capaianAwal"
                                                 status="{{ $row->statusSantri }}"
                                             />
                                         </td>
                                         
                                         <td>
-                                            <p id="juz-awal-{{ $row->id }}"></p>
+                                            <p id="juz-awal-{{ $row->id }}">{{ $row->juz_awal }}</p>
                                         </td>
 
                                         {{-- Akhir --}}
@@ -147,7 +147,7 @@
                                                 :selected="$row->id_surat_akhir ?? null"
                                                 data-id="{{ $row->id }}"
                                                 data-id-ustad="{{ $row->id_ustad }}"
-                                                class="inputDropdown suratAkhir"
+                                                class="suratAkhir"
                                                 status="{{ $row->statusSantri }}"
                                             />
                                         </td>
@@ -160,13 +160,13 @@
                                                 :selected="$row->capaian_akhir ?? null"
                                                 data-id="{{ $row->id }}"
                                                 data-id-ustad="{{ $row->id_ustad }}"
-                                                class="inputDropdown capaianAkhir"
+                                                class="capaianAkhir"
                                                 status="{{ $row->statusSantri }}"
                                             />
                                         </td>
                                         
                                         <td>
-                                            <p id="juz-akhir-{{ $row->id }}"></p>
+                                            <p id="juz-akhir-{{ $row->id }}">{{ $row->juz_akhir }}</p>
                                         </td>
 
                                         {{-- Kehadiran --}}
@@ -240,12 +240,16 @@
         }
 
         function sendDataToServer(url, data) {
-            console.log(data)
             $.ajax({
                 url: url,
                 type: 'POST',
                 data: data,
                 success: function (response) {
+                    $("#juz-" + response.awalAkhir + "-" + response.rowNumber).text(response.juz)
+
+                    let values = calculateValues(response.rowNumber);
+                    updateDisplayedValues(response.rowNumber, values);
+
                     Toastify({
                         text: response.message || 'Data berhasil diperbarui.',
                         duration: 3000,
@@ -261,7 +265,8 @@
             });
         }
 
-        function jml() {
+        function jml() 
+        {
             let tahfidzan = @json($tahfidzan);
             tahfidzan.forEach(row => {
                 let values = calculateValues(row.id);
@@ -278,61 +283,64 @@
             });
         });
 
-        // $(document).on('change', '.capaianAwal', function () {
-        //     let id = $(this).data('id');
-        //     let idUstad = $(this).data('id-ustad');
-        //     let idWaktu = parseFloat($('input[name="idWaktu"]').val());
+        $(document).on('blur change', '.capaianAwal, .suratAwal', function () {
+            let id = $(this).data('id');
+            let idUstad = $(this).data('id-ustad');
+            let idWaktu = parseFloat($('input[name="idWaktu"]').val());
 
-        //     let inputSuratAwal = $('#surat-awal-' + id).val()
-        //     inputCapaianAwal = $(this).val();
+            let inputSuratAwal = $('#surat-awal-' + id).val();
+            let inputCapaianAwal = $('#capaian-awal-' + id).val();
 
-        //     console.log("id surat awal : " + inputSuratAwal);
-        //     console.log("capaian awal : " + inputCapaianAwal);
+            let values = calculateValues(id);
+            updateDisplayedValues(id, values);
 
-        //     let values = calculateValues(id);
-        //     updateDisplayedValues(id, values);
+            let data = {
+                idTahfidzan: id,
+                idUstad: idUstad,
+                idWaktu: idWaktu,
+                idSurat: inputSuratAwal,
+                capaianAwal: inputCapaianAwal,
+                idTeks: $(this).attr('id'),
+                field: $(this).attr('name'),
+                value: inputCapaianAwal,
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                _method: 'PUT',
+                ...values
+            };
 
-        //     let data = {
-        //         idTahfidzan: id,
-        //         idUstad: idUstad,
-        //         idWaktu: idWaktu,
-        //         idSuratAwal: inputSuratAwal,
-        //         capaianAwal: inputCapaianAwal,
-        //         field: $(this).attr('name'),
-        //         value: inputCapaianAwal,
-        //         _token: $('meta[name="csrf-token"]').attr('content'),
-        //         _method: 'PUT',
-        //         ...values
-        //     };
+            if(inputCapaianAwal != '-' && inputSuratAwal != '-'){
+                sendDataToServer(baseUrl + '{{ $url }}' + '/update-value/' + id, data);
+            }  
+        });
 
-        //     if($(this).val() != '-'){
-        //         sendDataToServer(baseUrl + '{{ $url }}' + '/update-value/' + id, data);
-        //     }  
-        // });
+        $(document).on('blur change', '.capaianAkhir, .suratAkhir', function () {
+            let id = $(this).data('id');
+            let idUstad = $(this).data('id-ustad');
+            let idWaktu = parseFloat($('input[name="idWaktu"]').val());
 
-        $(document).on('change', '.suratAwal', function () {
-            inputSuratAwal = $(this).val();
-            // let id = $(this).data('id');
-            // let idUstad = $(this).data('id-ustad');
-            // let idWaktu = parseFloat($('input[name="idWaktu"]').val());
+            let inputSuratAkhir = $('#surat-akhir-' + id).val();
+            let inputCapaianAkhir = $('#capaian-akhir-' + id).val();
 
-            // let values = calculateValues(id);
-            // updateDisplayedValues(id, values);
+            let values = calculateValues(id);
+            updateDisplayedValues(id, values);
 
-            // let data = {
-            //     idTahfidzan: id,
-            //     idUstad: idUstad,
-            //     idWaktu: idWaktu,
-            //     field: $(this).attr('name'),
-            //     value: $(this).val(),
-            //     _token: $('meta[name="csrf-token"]').attr('content'),
-            //     _method: 'PUT',
-            //     ...values
-            // };
+            let data = {
+                idTahfidzan: id,
+                idUstad: idUstad,
+                idWaktu: idWaktu,
+                idSurat: inputSuratAkhir,
+                capaianAwal: inputCapaianAkhir,
+                idTeks: $(this).attr('id'),
+                field: $(this).attr('name'),
+                value: inputCapaianAkhir,
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                _method: 'PUT',
+                ...values
+            };
 
-            // if($(this).val() != '-'){
-            //     sendDataToServer(baseUrl + '{{ $url }}' + '/update-value/' + id, data);
-            // }  
+            if(inputCapaianAkhir != '-' && inputSuratAkhir != '-'){
+                sendDataToServer(baseUrl + '{{ $url }}' + '/update-value/' + id, data);
+            }  
         });
 
         $(document).on('change', '.inputDropdown', function () {

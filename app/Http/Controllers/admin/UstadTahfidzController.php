@@ -31,7 +31,7 @@ class UstadTahfidzController extends Controller
             'users.id', 
             'users.nama', // Jika ingin menampilkan nama user juga
             \DB::raw('COUNT(master_ketahfidzan.id_ustad) as totalSantri')
-        )
+        )   
         ->leftJoin('master_ketahfidzan', 'master_ketahfidzan.id_ustad', '=', 'users.id')
         ->where('users.id', '!=', 0)
         ->orderBy('users.nama', 'asc')
