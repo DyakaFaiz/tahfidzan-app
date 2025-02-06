@@ -1430,11 +1430,11 @@ class DashboardController extends Controller
     private function jmlPojok($data) {
         $maxPojok = 20;
         return $data->map(function ($item) use ($maxPojok) {
-            if ($item['juzAkhir'] > $item['juzAwal']) {
-                return ($maxPojok - $item['pojokAwal']) + $item['pojokAkhir'];
-            } else {
-                return $item['pojokAkhir'] - $item['pojokAwal'];
-            }
+            $hasil = ($item['juzAkhir'] > $item['juzAwal']) 
+                ? ($maxPojok - $item['pojokAwal']) + $item['pojokAkhir']
+                : $item['pojokAkhir'] - $item['pojokAwal'];
+    
+            return max(0, $hasil); // Jika hasil negatif, ubah menjadi 0
         });
     }
 
