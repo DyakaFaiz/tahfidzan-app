@@ -152,8 +152,6 @@
                 password: $('#password-edit').val(),
             };
 
-            console.log(formData);
-            
             $.ajax({
                 url: baseUrl + '{{ $url }}' +  '/update/' + id,
                 type: 'POST',
@@ -168,9 +166,9 @@
                         backgroundColor: "#4fbe87",
                     }).showToast();
 
-                    // setTimeout(function() {
-                    //     location.reload();
-                    // }, 2000); 
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000); 
                 },
                 error: function(xhr) {
                     Toastify({
