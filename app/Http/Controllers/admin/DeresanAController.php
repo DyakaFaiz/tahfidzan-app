@@ -180,22 +180,11 @@ class DeresanAController extends Controller
 
         $idSurat = (int) $request->idSurat;
 
-        $nomorList = MasterJuz::select('master_juz.nomor')
-            ->leftJoin("master_surat", "master_surat.id", "=", "master_juz.id_surat_dari")
+        $juz = MasterJuz::leftJoin("master_surat", "master_surat.id", "=", "master_juz.id_surat_dari")
             ->where("id_surat_dari", $idSurat)
             ->orWhere("id_surat_sampai", $idSurat)
-            ->orderBy('master_juz.nomor')
-            ->pluck('nomor')
-            ->toArray(); // Mengubah hasil query menjadi array
-
-        $jumlah = count($nomorList);
-
-        if ($jumlah == 0) {
-            $juz = null; // Jika tidak ada data, kembalikan null
-        } else {
-            $indexTengah = floor($jumlah / 2); // Cari indeks tengah
-            $juz = $nomorList[$indexTengah]; // Ambil nomor tengahnya
-        }
+            ->orWhereRaw("FIND_IN_SET(?, id_surat_between)", [$idSurat])
+            ->max('master_juz.nomor');
 
         $idParts = explode('-', $request->idTeks);
         $awalAkhir = isset($idParts[1]) ? $idParts[1] : null;
