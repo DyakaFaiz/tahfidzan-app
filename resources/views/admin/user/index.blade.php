@@ -203,6 +203,7 @@
                         method: 'DELETE',
                         data: {
                             _token: "{{ csrf_token() }}",
+                            _method: 'DELETE',
                             id: id
                         },
                         success: function(response) {
