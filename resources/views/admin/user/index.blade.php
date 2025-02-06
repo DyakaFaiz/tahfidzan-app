@@ -120,8 +120,8 @@
                 method: 'GET',
                 success: function (response) {
                     $('#idEdit').val(response.id);
-                    $('#username').val(response.username);
-                    $('#nama').val(response.nama);
+                    $('#username-edit').val(response.username);
+                    $('#nama-edit').val(response.nama);
                 },
                 error: function (xhr, status, error) {
                     Toastify({
@@ -147,11 +147,13 @@
             let formData = {
                 _method: 'PUT',
                 _token: '{{ csrf_token() }}',
-                nama: $('#nama').val(),
-                username: $('#username').val(),
-                password: $('#password').val(),
+                nama: $('#nama-edit').val(),
+                username: $('#username-edit').val(),
+                password: $('#password-edit').val(),
             };
 
+            console.log(formData);
+            
             $.ajax({
                 url: baseUrl + '{{ $url }}' +  '/update/' + id,
                 type: 'POST',
@@ -166,9 +168,9 @@
                         backgroundColor: "#4fbe87",
                     }).showToast();
 
-                    setTimeout(function() {
-                        location.reload();
-                    }, 2000); 
+                    // setTimeout(function() {
+                    //     location.reload();
+                    // }, 2000); 
                 },
                 error: function(xhr) {
                     Toastify({

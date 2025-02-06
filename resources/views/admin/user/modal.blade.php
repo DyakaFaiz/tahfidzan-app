@@ -25,21 +25,21 @@
                                                 <label>Username</label>
                                             </div>
                                             <div class="col-md-8 form-group">
-                                                <input type="text" id="username" class="form-control"
+                                                <input type="text" id="username-edit" class="form-control"
                                                     name="username" placeholder="Username">
                                             </div>
                                             <div class="col-md-4">
                                                 <label>Nama</label>
                                             </div>
                                             <div class="col-md-8 form-group">
-                                                <input type="text" id="nama" class="form-control"
+                                                <input type="text" id="nama-edit" class="form-control"
                                                     name="nama" placeholder="Nama">
                                             </div>
                                             <div class="col-md-4">
                                                 <label>Password</label>
                                             </div>
                                             <div class="col-md-8 form-group">
-                                                <input type="password" id="password" class="form-control"
+                                                <input type="password" id="password-edit" class="form-control"
                                                     name="password" placeholder="Password">
                                             </div>
                                             <div class="col-sm-12 d-flex justify-content-end">

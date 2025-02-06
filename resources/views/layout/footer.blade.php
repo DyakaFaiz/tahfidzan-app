@@ -4,7 +4,7 @@
             <p><script>document.write(new Date().getFullYear())</script> &copy; BINNUS</p>
         </div>
         <div>
-            <small>0.0.9</small>
+            <small>0.0.10</small>
         </div>
         <div>
             <p>Crafted with <span class="text-danger"><i class="bi bi-heart"></i></span> by <a

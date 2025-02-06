@@ -85,7 +85,7 @@ class UserController extends Controller
             'password'  => Hash::make($request->password),
         ];
 
-        $createUser = User::create($data);
+        $save = User::create($data);
 
         $newUser = User::latest()->first();
         $save = MasterKuotaTahfidzan::create([
@@ -110,22 +110,27 @@ class UserController extends Controller
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'username' => 'required|string|max:255|unique:users,username,' . $request->id,
+            'username' => 'required|string|max:255|unique:users,username,' . $id,
             'nama' => 'required|string|max:255',
-            'password' => 'nullable|string|min:6',
+            'password' => 'nullable|string|min:4',
         ]);
 
         if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
+            response()->json(['message' => $validator, 500]);
         }
 
         $user = User::findOrFail($id);
 
-        $user->update([
+        $data = [
             'username' => $request->username,
             'nama' => $request->nama,
-            'password' => $request->password ? Hash::make($request->password) : $user->password,
-        ]);
+        ];
+
+        if (!empty($request->password)) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        $user->update($data);
 
         return response()->json(['message' => 'Berhasil merubah data']);
     }
