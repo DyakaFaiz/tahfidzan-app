@@ -184,6 +184,7 @@ class TahsinBinnadhorController extends Controller
             ->where("id_surat_dari", $idSurat)
             ->orWhere("id_surat_sampai", $idSurat)
             ->orderBy('master_juz.nomor')
+            ->orWhereRaw("FIND_IN_SET(?, id_surat_between)", [$idSurat])
             ->pluck('nomor')
             ->toArray(); // Mengubah hasil query menjadi array
 

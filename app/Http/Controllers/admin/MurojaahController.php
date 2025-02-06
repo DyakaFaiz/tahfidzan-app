@@ -183,6 +183,7 @@ class MurojaahController extends Controller
             ->leftJoin("master_surat", "master_surat.id", "=", "master_juz.id_surat_dari")
             ->where("id_surat_dari", $idSurat)
             ->orWhere("id_surat_sampai", $idSurat)
+            ->orWhereRaw("FIND_IN_SET(?, id_surat_between)", [$idSurat])
             ->orderBy('master_juz.nomor')
             ->pluck('nomor')
             ->toArray(); // Mengubah hasil query menjadi array
