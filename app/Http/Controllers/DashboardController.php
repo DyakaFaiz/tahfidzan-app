@@ -5,24 +5,25 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Models\Waktu;
 
+use App\Models\Santri;
 use App\Models\Target;
 use App\Models\Ziyadah;
 use App\Models\DeresanA;
 use App\Models\Murojaah;
 use Illuminate\Http\Request;
+
 use App\Exports\BlangkoExports;
 
 use App\Models\TahsinBinnadhor;
-
 use App\Models\MasterKetahfidzan;
 use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Facades\Excel;
 
+use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Events\AfterSheet;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Border;
 use Illuminate\Validation\ValidationException;
 
 class DashboardController extends Controller
@@ -37,15 +38,84 @@ class DashboardController extends Controller
         $tglMinFormatted = Carbon::parse($tglMin->tgl)->format('Y-m-d');
         $tglMaxFormatted = Carbon::parse($tglMax->tgl)->format('Y-m-d');
 
+        if(session('idRole') == 3){
+                $querySantriOrangTua = Santri::select(
+                'santri.*',
+                'master_kelas.kelas AS namaKelas',
+                DB::raw('GREATEST(
+                    COALESCE(deresan_a.juz_akhir, 0), 
+                    COALESCE(murojaah.juz_akhir, 0), 
+                    COALESCE(tahsin_binnadhor.juz_akhir, 0), 
+                    COALESCE(ziyadah.juz_akhir, 0)
+                    ) as juzAkhir'),
+                    DB::raw('COALESCE((SELECT SUM(jumlah) FROM deresan_a WHERE deresan_a.id_santri = santri.id), 0) as totalDeresan'),
+                    DB::raw('COALESCE((SELECT SUM(jumlah) FROM murojaah WHERE murojaah.id_santri = santri.id), 0) as totalMurojaah'),
+                    DB::raw('COALESCE((SELECT SUM(jumlah) FROM tahsin_binnadhor WHERE tahsin_binnadhor.id_santri = santri.id), 0) as totalTahsin'),
+                    DB::raw('COALESCE((SELECT SUM(jumlah) FROM ziyadah WHERE ziyadah.id_santri = santri.id), 0) as totalZiyadah'),
+                    DB::raw('(
+                        COALESCE((SELECT SUM(jumlah) FROM deresan_a WHERE deresan_a.id_santri = santri.id), 0) +
+                        COALESCE((SELECT SUM(jumlah) FROM murojaah WHERE murojaah.id_santri = santri.id), 0) +
+                        COALESCE((SELECT SUM(jumlah) FROM tahsin_binnadhor WHERE tahsin_binnadhor.id_santri = santri.id), 0) +
+                        COALESCE((SELECT SUM(jumlah) FROM ziyadah WHERE ziyadah.id_santri = santri.id), 0)
+                        ) as total_semua')
+                        )
+            ->leftJoin('deresan_a', 'deresan_a.id_santri', '=', 'santri.id')
+            ->leftJoin('murojaah', 'murojaah.id_santri', '=', 'santri.id')
+            ->leftJoin('tahsin_binnadhor', 'tahsin_binnadhor.id_santri', '=', 'santri.id')
+            ->leftJoin('ziyadah', 'ziyadah.id_santri', '=', 'santri.id')
+            ->leftJoin('master_kelas', 'master_kelas.id', '=', 'santri.id_kelas')
+            ->where('id_orang_tua', session('idUser'))
+            ->first();
+            
+            
+            
+            $queryDeresan = $this->getTahfidzanData('deresan_a', $querySantriOrangTua->id);
+            $queryMurojaah = $this->getTahfidzanData('murojaah', $querySantriOrangTua->id);
+            $queryTahsin = $this->getTahfidzanData('tahsin_binnadhor', $querySantriOrangTua->id);
+            $queryZiyadah = $this->getTahfidzanData('ziyadah', $querySantriOrangTua->id);
+        }
+        
+        $namaRole = [
+            1 => 'Admin',
+            2 => 'Ustad',
+        ];
+
         $data = [
             'tglMin'  => $tglMinFormatted,
             'tglMax'  => $tglMaxFormatted,
-            'title'  => 'Dashboard',
-            'pageHeading'   => 'Dashboard',
-            'url'   => 'dashboard'
+            'title'  => 'Dashboard ' . ($namaRole[session('idRole')] ?? 'Orang Tua'),
+            'pageHeading'   => 'Dashboard ' . ($namaRole[session('idRole')] ?? 'Orang Tua'),
+            'url'   => 'dashboard',
         ];
 
+        if (session('idRole') == 3) {
+            $data['deresana'] = $queryDeresan;
+            $data['murojaah'] = $queryMurojaah;
+            $data['tahsin']   = $queryTahsin;
+            $data['ziyadah']  = $queryZiyadah;
+            $data['dataSantri']  = $querySantriOrangTua;
+        }
+        
+
         return view('dashboard', $data);
+    }
+
+    private function getTahfidzanData($model, $idSantri)
+    {
+        return DB::table($model)->select(
+                "$model.*",
+                'waktu.tgl AS tanggal',
+                'waktu.hari AS hari',
+                'msakhir.nama AS namaSuratAwal',
+                'msawal.nama AS namaSuratAkhir',
+                'users.nama AS namaUstad'
+            )
+            ->leftJoin('users', 'users.id', '=', "{$model}.id_ustad")
+            ->leftJoin('waktu', 'waktu.id', '=', "{$model}.id_waktu")
+            ->leftJoin('master_surat AS msakhir', 'msakhir.id', '=', "{$model}.id_surat_awal")
+            ->leftJoin('master_surat AS msawal', 'msawal.id', '=', "{$model}.id_surat_akhir")
+            ->where("{$model}.id_santri", $idSantri)
+            ->get();
     }
 
     public function diagramZiyadah(Request $request)
@@ -1427,7 +1497,8 @@ class DashboardController extends Controller
         });
     }
 
-    private function jmlPojok($data) {
+    private function jmlPojok($data) 
+    {
         $maxPojok = 20;
         return $data->map(function ($item) use ($maxPojok) {
             $hasil = ($item['juzAkhir'] > $item['juzAwal']) 
